@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - GraphQL Profile</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body style="background: var(--bg-color);">
+    <div class="profile-container">
+        <header class="header">
+            <div class="user-info">
+                <h2 id="userName">Loading...</h2>
+                <p class="user-id" id="userId"></p>
+            </div>
+            <button onclick="logout()" class="logout-btn">Logout</button>
+        </header>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <h3>Total XP</h3>
+                <div class="value" id="totalXP">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Audit Ratio</h3>
+                <div class="value" id="auditRatio">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Projects Completed</h3>
+                <div class="value" id="projectsCompleted">-</div>
+            </div>
+        </div>
+
+        <div class="graph-section">
+            <h3>Statistics</h3>
+            <p>Graphs will be displayed here...</p>
+            <div id="graphsContainer"></div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/graphql.js"></script>
+    <script src="js/profile.js"></script>
+</body>
+</html>
