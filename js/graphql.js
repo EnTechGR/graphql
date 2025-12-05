@@ -39,68 +39,50 @@ async function executeQuery(query, variables = {}) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${jwt}`
+                // IMPORTANT: The Go server should handle adding the JWT to X-Hasura-Admin-Secret header
+                'Authorization': `Bearer ${jwt}` 
             },
             body: JSON.stringify({
-                query,
-                variables
+                query: query,
+                variables: variables
             })
         });
-        
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
-        
+
+        // The Go server handles the proxy logic, so we look for standard HTTP errors first.
+        if (response.status === 401) {
+             throw new Error('Authentication failed (401). JWT is invalid or expired.');
+        }
+
         if (!response.ok) {
-            const responseText = await response.text();
-            console.error('Response error body:', responseText);
-            
-            if (response.status === 401) {
-                console.error('Authentication failed - 401 Unauthorized');
-                console.error('This usually means the JWT token is invalid or expired');
-                throw new Error('Authentication failed (401)');
-            }
-            throw new Error(`HTTP error! status: ${response.status}, body: ${responseText}`);
+            const errorText = await response.text();
+            throw new Error(`GraphQL request failed with status ${response.status}: ${errorText}`);
+        }
+
+        const json = await response.json();
+        
+        if (json.errors) {
+            console.error('GraphQL errors:', json.errors);
+            throw new Error(`GraphQL Errors: ${json.errors.map(e => e.message).join('; ')}`);
         }
         
-        const result = await response.json();
-        console.log('GraphQL response received:', result);
-        
-        if (result.errors) {
-            console.error('GraphQL errors:', result.errors);
-            throw new Error(result.errors[0].message);
-        }
-        
-        console.log('Query successful!');
-        return result.data;
-        
+        console.log('GraphQL request successful.');
+        return json.data;
+
     } catch (error) {
-        console.error('=== Query Execution Error ===');
-        console.error('Error type:', error.name);
-        console.error('Error message:', error.message);
-        console.error('Full error:', error);
-        
-        if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
-            console.error('CORS/Network Error detected!');
-            console.error('Possible issues:');
-            console.error('1. Server not running');
-            console.error('2. Wrong endpoint URL');
-            console.error('3. Network connectivity issue');
-        }
-        
+        console.error('Error executing GraphQL query:', error);
         throw error;
     }
 }
 
-/**
- * Example Queries (to be used in profile.js)
- */
-
-// Get basic user information
+// Get user info, campus, and skills (via attrs)
 const GET_USER_INFO = `
     query {
         user {
             id
             login
+            campus
+            createdAt
+            attrs # Fetches user attributes, assumed to contain skill data
         }
     }
 `;
@@ -109,13 +91,19 @@ const GET_USER_INFO = `
 const GET_USER_XP = `
     query {
         transaction(
-            where: { type: { _eq: "xp" } }
-            order_by: { createdAt: asc }
+            where: {
+                type: { _eq: "xp" }
+                _or: [
+                    { object: { type: { _eq: "project" } } }
+                    { object: { type: { _eq: "module" } } }
+                    { object: { type: { _eq: "piscine" } } }
+                ]
+            }
+            order_by: { createdAt: desc }
         ) {
             id
             amount
             createdAt
-            path
             object {
                 name
                 type
@@ -124,7 +112,7 @@ const GET_USER_XP = `
     }
 `;
 
-// Get user audit information
+// Get user audit information (Audits)
 const GET_AUDIT_RATIO = `
     query {
         user {
@@ -133,25 +121,6 @@ const GET_AUDIT_RATIO = `
             auditRatio
             totalUp
             totalDown
-        }
-    }
-`;
-
-// Get user progress
-const GET_USER_PROGRESS = `
-    query {
-        progress(
-            where: { userId: { _eq: $userId } }
-            order_by: { createdAt: desc }
-        ) {
-            id
-            grade
-            createdAt
-            path
-            object {
-                name
-                type
-            }
         }
     }
 `;
@@ -175,6 +144,25 @@ const GET_USER_RESULTS = `
     }
 `;
 
+// Get user progress by ID (Grades)
+const GET_USER_PROGRESS_BY_ID = `
+  query ($userId: Int!) {
+    progress(
+      where: { userId: { _eq: $userId } }
+      order_by: { createdAt: desc }
+    ) {
+      id
+      grade
+      createdAt
+      path
+      object {
+        name
+        type
+      }
+    }
+  }
+`;
+
 // Export queries for use in other files
 window.GraphQL = {
     executeQuery,
@@ -182,7 +170,7 @@ window.GraphQL = {
         GET_USER_INFO,
         GET_USER_XP,
         GET_AUDIT_RATIO,
-        GET_USER_PROGRESS,
-        GET_USER_RESULTS
+        GET_USER_RESULTS,
+        GET_USER_PROGRESS_BY_ID
     }
 };

@@ -1,161 +1,118 @@
-// profile.js
+// --- Configuration for SVG Generation ---
+const GRAPH_WIDTH = 550;
+const GRAPH_HEIGHT = 350;
 
-// Function to handle logout (referenced in profile.html)
-function logout() {
-    console.log("Logging out...");
-    localStorage.removeItem('jwt');
-    // Assuming 'index.html' is your login page
-    window.location.href = 'index.html';
+/**
+ * Helper function to wrap SVG content into the styled graph-card container.
+ * @param {string} title - Title of the graph.
+ * @param {string} svgContent - The generated SVG elements string.
+ * @returns {HTMLElement} - The complete graph card element.
+ */
+function createGraphCard(title, svgContent) {
+    const card = document.createElement('div');
+    card.className = 'graph-card';
+    card.innerHTML = `
+        <h4 style="margin-top:0; color:var(--text-color);">${title}</h4>
+        <svg viewBox="0 0 ${GRAPH_WIDTH} ${GRAPH_HEIGHT}" width="100%" height="calc(100% - 30px)" preserveAspectRatio="xMidYMid meet">
+            ${svgContent}
+        </svg>
+    `;
+    return card;
 }
 
 /**
- * Renders the basic user identification and key metrics.
- * @param {object} data - The data object containing user, audit, and XP info.
+ * Clears the graphs container before rendering new charts.
  */
-function renderKeyStats(data) {
-    const { userInfo, auditInfo, xpData } = data;
-
-    // 1. Basic User Identification (using nested query data)
-    const user = userInfo.user[0]; // user query returns an array
-    if (user) {
-        document.getElementById('userName').textContent = user.login;
-        document.getElementById('userId').textContent = `ID: ${user.id}`;
-    }
-
-    // 2. XP Amount (by summing all transactions)
-    let totalXP = 0;
-    if (xpData && xpData.transaction) {
-        xpData.transaction.forEach(t => {
-            totalXP += t.amount;
-        });
-        document.getElementById('totalXP').textContent = `${(totalXP / 1000).toFixed(1)} kB`; // Convert to kB for cleaner display
-    }
-
-    // 3. Audit Ratio (using nested query data)
-    const auditUser = auditInfo.user[0]; // user query returns an array
-    if (auditUser) {
-        const auditRatio = auditUser.auditRatio.toFixed(2);
-        const totalUp = auditUser.totalUp;
-        const totalDown = auditUser.totalDown;
-        
-        document.getElementById('auditRatio').textContent = auditRatio;
-        
-        // Add more detailed info
-        const ratioCard = document.getElementById('statsGrid').children[1];
-        const detailP = document.createElement('p');
-        detailP.className = 'detail-text';
-        detailP.textContent = `(Up: ${totalUp} / Down: ${totalDown})`;
-        ratioCard.appendChild(detailP);
-    }
-    
-    // Calculate and display Projects Completed (as a bonus metric)
-    const completedProjects = xpData.transaction.filter(t => 
-        t.object.type === 'project' && t.amount > 0
-    ).length;
-    document.getElementById('projectsCompleted').textContent = completedProjects;
-}
-
-
-/**
- * Generates an SVG Bar Chart for XP earned per project.
- * @param {Array} transactions - The array of XP transactions.
- */
-function generateProjectXPBarChart(transactions) {
+function clearGraphs() {
     const container = document.getElementById('graphsContainer');
-    
-    // Group XP by project name
+    if (container) {
+        container.innerHTML = '';
+    }
+}
+
+// Function to perform logout
+function logout() {
+    localStorage.removeItem('jwt');
+    // Assuming the login page is index.html
+    window.location.href = 'index.html'; 
+}
+
+// --- 1. Project XP Bar Chart (XP Amount) ---
+function generateProjectXPBarChart(transactions) {
     const projectXpMap = transactions
         .filter(t => t.object && t.object.type === 'project' && t.amount > 0)
         .reduce((acc, t) => {
-            const name = t.object.name || t.path.split('/').pop();
-            acc[name] = (acc[name] || 0) + t.amount;
+            const projectName = t.object.name;
+            acc[projectName] = (acc[projectName] || 0) + t.amount;
             return acc;
         }, {});
 
-    const projectXp = Object.entries(projectXpMap)
-        .sort(([, a], [, b]) => b - a) // Sort by amount descending
-        .slice(0, 10); // Take top 10 projects
+    const projects = Object.entries(projectXpMap)
+        .sort(([, xpA], [, xpB]) => xpB - xpA)
+        .slice(0, 10);
 
-    if (projectXp.length === 0) return;
+    if (projects.length === 0) {
+        document.getElementById('graphsContainer').innerHTML += '<div class="graph-card"><p class="detail-text">No project XP data to display.</p></div>';
+        return;
+    }
 
-    // SVG parameters
-    const width = 600;
-    const height = 300;
-    const padding = 30;
-    const barWidth = (width - 2 * padding) / projectXp.length - 10;
-    const maxValue = Math.max(...projectXp.map(([, amount]) => amount));
+    const maxXP = Math.max(...projects.map(([, xp]) => xp));
+    const BAR_SPACING = 5;
+    const BAR_WIDTH = (GRAPH_WIDTH / projects.length) - BAR_SPACING;
+    const SVG_PADDING_BOTTOM = 50; 
 
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute('width', width);
-    svg.setAttribute('height', height + 20); // Extra space for title
-    svg.innerHTML = `<text x="${width/2}" y="15" text-anchor="middle" style="font-size: 16px; fill: var(--text-color);">XP Earned by Top 10 Projects</text>`;
+    let svgContent = '';
 
-    projectXp.forEach(([name, amount], i) => {
-        const barHeight = (amount / maxValue) * height * 0.7; // Scale height
-        const x = padding + i * (barWidth + 10);
-        const y = height - barHeight - padding;
+    projects.forEach(([name, xp], index) => {
+        const barHeight = (xp / maxXP) * (GRAPH_HEIGHT - SVG_PADDING_BOTTOM);
+        const x = index * (BAR_WIDTH + BAR_SPACING);
+        const y = GRAPH_HEIGHT - barHeight - SVG_PADDING_BOTTOM;
 
-        // Bar
-        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        rect.setAttribute('x', x);
-        rect.setAttribute('y', y);
-        rect.setAttribute('width', barWidth);
-        rect.setAttribute('height', barHeight);
-        rect.setAttribute('fill', 'var(--primary-color)');
-        svg.appendChild(rect);
+        // Bar (Primary Color)
+        svgContent += `<rect x="${x}" y="${y}" width="${BAR_WIDTH}" height="${barHeight}" fill="#4a90e2" rx="3" ry="3" />`;
 
-        // Label (Project Name - rotate for readability)
-        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        label.setAttribute('x', x + barWidth / 2);
-        label.setAttribute('y', height + 5);
-        label.setAttribute('transform', `rotate(-45 ${x + barWidth / 2} ${height + 5})`);
-        label.setAttribute('text-anchor', 'end');
-        label.setAttribute('fill', 'var(--text-color)');
-        label.textContent = name;
-        svg.appendChild(label);
+        // Project Name Label (Rotated)
+        svgContent += `
+            <g transform="translate(${x + BAR_WIDTH / 2}, ${GRAPH_HEIGHT - SVG_PADDING_BOTTOM + 5}) rotate(-45)">
+                <text x="0" y="0" text-anchor="end" font-size="10" fill="#333333">
+                    ${name.length > 15 ? name.substring(0, 12) + '...' : name}
+                </text>
+            </g>
+        `;
+
+        // XP Text (above the bar)
+        svgContent += `
+            <text x="${x + BAR_WIDTH / 2}" y="${y - 5}" 
+                  text-anchor="middle" font-size="10" fill="#333333">
+                ${(xp / 1000).toFixed(0)}kB
+            </text>
+        `;
     });
 
-    // Append to container
-    const chartDiv = document.createElement('div');
-    chartDiv.className = 'graph-card';
-    chartDiv.appendChild(svg);
-    container.appendChild(chartDiv);
-    
-    // Add informational diagram
-    
+    const card = createGraphCard('Top 10 Project XP (kB)', svgContent);
+    document.getElementById('graphsContainer').appendChild(card);
 }
 
-
-/**
- * Generates an SVG Circle/Donut Chart for the Audit Ratio (Up vs Down).
- * @param {object} auditInfo - The data object containing audit info.
- */
+// --- 2. Audit Ratio Donut Chart (Audits) ---
 function generateAuditRatioDonutChart(auditInfo) {
-    const container = document.getElementById('graphsContainer');
-    const auditUser = auditInfo.user[0];
-    if (!auditUser) return;
-    
-    const totalUp = auditUser.totalUp;
-    const totalDown = auditUser.totalDown;
-    const total = totalUp + totalDown;
+    const auditUser = auditInfo.user?.[0];
+    if (!auditUser || (auditUser.totalUp === 0 && auditUser.totalDown === 0)) {
+        document.getElementById('graphsContainer').innerHTML += '<div class="graph-card"><p class="detail-text">No audit graph data to display.</p></div>';
+        return;
+    }
 
-    if (total === 0) return;
+    const up = auditUser.totalUp;
+    const down = auditUser.totalDown;
+    const total = up + down;
 
-    // SVG parameters
-    const size = 250;
+    const upRatio = up / total;
+    const downRatio = down / total;
+
     const radius = 100;
-    const center = size / 2;
-    const strokeWidth = 30;
-    const circumference = 2 * Math.PI * radius;
+    const center = GRAPH_WIDTH / 2;
+    const strokeWidth = 50;
 
-    // Calculate percentages and offset
-    const upPercent = (totalUp / total) * 100;
-    const downPercent = (totalDown / total) * 100;
-
-    const upDashOffset = circumference * (1 - (upPercent / 100));
-    const downDashOffset = 0; // Starts from the beginning (top)
-
-    // Helper to convert polar to cartesian coordinates for text placement
+    // Helper to convert polar coordinates to cartesian
     const polarToCartesian = (centerX, centerY, radius, angleInDegrees) => {
         const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
         return {
@@ -164,101 +121,357 @@ function generateAuditRatioDonutChart(auditInfo) {
         };
     };
 
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute('width', size);
-    svg.setAttribute('height', size + 40);
+    // Function to calculate SVG path for an arc
+    const describeArc = (x, y, radius, startAngle, endAngle) => {
+        const start = polarToCartesian(x, y, radius, endAngle);
+        const end = polarToCartesian(x, y, radius, startAngle);
+        const sweepAngle = endAngle - startAngle;
+        const largeArcFlag = sweepAngle <= 180 ? '0' : '1';
+        
+        if (sweepAngle >= 360) {
+             return `M ${x - radius} ${y} A ${radius} ${radius} 0 1 0 ${x + radius} ${y} A ${radius} ${radius} 0 1 0 ${x - radius} ${y} Z`;
+        }
 
-    svg.innerHTML = `<text x="${center}" y="15" text-anchor="middle" style="font-size: 16px; fill: var(--text-color);">Total Audits (Up/Down)</text>`;
+        return [
+            'M', start.x, start.y,
+            'A', radius, radius, 0, largeArcFlag, 0, end.x, end.y
+        ].join(' ');
+    };
 
-    // Background circle
-    svg.innerHTML += `
-        <circle cx="${center}" cy="${center + 20}" r="${radius}" fill="none" stroke="var(--bg-card-color)" stroke-width="${strokeWidth}"/>
+    const upAngle = 360 * upRatio;
+    const downAngle = 360 * downRatio;
+
+    const upColor = '#50e3c2';
+    const downColor = '#e94e77';
+
+    const upPath = describeArc(center, GRAPH_HEIGHT / 2, radius, 0, upAngle);
+    const downPath = describeArc(center, GRAPH_HEIGHT / 2, radius, upAngle, upAngle + downAngle);
+
+
+    let svgContent = `
+        <g transform="translate(0, -20)">
+            <path d="${upPath}" fill="none" stroke="${upColor}" stroke-width="${strokeWidth}" stroke-linecap="butt"/>
+            <path d="${downPath}" fill="none" stroke="${downColor}" stroke-width="${strokeWidth}" stroke-linecap="butt"/>
+            
+            <text x="${center}" y="${GRAPH_HEIGHT / 2 + 10}" text-anchor="middle" font-size="24" font-weight="bold" fill="#333333">
+                ${(auditUser.auditRatio).toFixed(2)}
+            </text>
+        </g>
+        
+        <g transform="translate(400, 100)">
+            <rect x="0" y="0" width="15" height="15" fill="${upColor}" />
+            <text x="20" y="13" font-size="14" fill="#333333">Up Audits: ${up} (${(upRatio * 100).toFixed(1)}%)</text>
+            
+            <rect x="0" y="30" width="15" height="15" fill="${downColor}" />
+            <text x="20" y="43" font-size="14" fill="#333333">Down Audits: ${down} (${(downRatio * 100).toFixed(1)}%)</text>
+        </g>
     `;
 
-    // Up segment (Blue)
-    svg.innerHTML += `
-        <circle 
-            cx="${center}" cy="${center + 20}" r="${radius}" fill="none" 
-            stroke="var(--primary-color)" stroke-width="${strokeWidth}" 
-            stroke-dasharray="${circumference}" stroke-dashoffset="${upDashOffset}" 
-            transform="rotate(-90 ${center} ${center + 20})"
-        >
-            <title>Audits Up: ${totalUp} (${upPercent.toFixed(1)}%)</title>
-        </circle>
+    const card = createGraphCard('Audit Ratio (Up vs. Down)', svgContent);
+    document.getElementById('graphsContainer').appendChild(card);
+}
+
+// --- 3. Progress Line Chart (Grades) ---
+function generateProgressLineChart(progressData) {
+    // Filter to completed/successful progress (grade >= 1) that have a path, and sort by date
+    const successfulProgress = progressData
+        .filter(p => p.grade >= 1 && p.path)
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+    // We need at least 2 points to draw a line
+    if (successfulProgress.length < 2) {
+        document.getElementById('graphsContainer').innerHTML += '<div class="graph-card"><p class="detail-text">Not enough successful progress points to draw a grade trend line chart.</p></div>';
+        return;
+    }
+
+    const SVG_PADDING = 30;
+    const CHART_WIDTH = GRAPH_WIDTH - 2 * SVG_PADDING;
+    const CHART_HEIGHT = GRAPH_HEIGHT - 2 * SVG_PADDING;
+    const maxXIndex = successfulProgress.length - 1;
+    const maxGrade = 1.5; 
+
+    // Mapping data points to SVG coordinates
+    const points = successfulProgress.map((p, index) => {
+        const x = SVG_PADDING + (index / maxXIndex) * CHART_WIDTH;
+        const normalizedGrade = Math.min(p.grade, maxGrade);
+        const y = SVG_PADDING + CHART_HEIGHT * (1 - (normalizedGrade / maxGrade));
+        
+        return { x, y, grade: p.grade, date: new Date(p.createdAt) };
+    });
+
+    const polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
+
+    let svgContent = '';
+
+    // --- Draw Axes ---
+    svgContent += `<line x1="${SVG_PADDING}" y1="${SVG_PADDING + CHART_HEIGHT}" x2="${SVG_PADDING + CHART_WIDTH}" y2="${SVG_PADDING + CHART_HEIGHT}" stroke="#333" stroke-width="1"/>`;
+    svgContent += `<line x1="${SVG_PADDING}" y1="${SVG_PADDING}" x2="${SVG_PADDING}" y2="${SVG_PADDING + CHART_HEIGHT}" stroke="#333" stroke-width="1"/>`;
+
+    // --- Draw the Line ---
+    svgContent += `
+        <polyline fill="none" stroke="#e94e77" stroke-width="2" points="${polylinePoints}" />
     `;
 
-    // Down segment (Red/Orange)
-    svg.innerHTML += `
-        <circle 
-            cx="${center}" cy="${center + 20}" r="${radius}" fill="none" 
-            stroke="var(--error-color)" stroke-width="${strokeWidth}" 
-            stroke-dasharray="${circumference * (downPercent / 100)} ${circumference}" 
-            stroke-dashoffset="${0}" 
-            transform="rotate(${90 + (upPercent * 3.6)} ${center} ${center + 20})"
-        >
-            <title>Audits Down: ${totalDown} (${downPercent.toFixed(1)}%)</title>
-        </circle>
-    `;
-    
-    // Center Text (Audit Ratio)
-    svg.innerHTML += `
-        <text x="${center}" y="${center + 20 + 5}" text-anchor="middle" style="font-size: 20px; font-weight: bold; fill: var(--primary-color);">
-            ${auditUser.auditRatio.toFixed(2)}
-        </text>
-    `;
+    // --- Draw Points and Labels ---
+    points.forEach((p, index) => {
+        // Circle marker
+        svgContent += `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#e94e77" />`;
+        
+        // Y-axis labels (Grade %)
+        if (index === 0) {
+            svgContent += `<text x="${SVG_PADDING - 5}" y="${SVG_PADDING + 5}" text-anchor="end" font-size="10" fill="#333">150%</text>`; // Top
+            svgContent += `<text x="${SVG_PADDING - 5}" y="${SVG_PADDING + CHART_HEIGHT * (1 - (1/maxGrade)) + 3}" text-anchor="end" font-size="10" fill="#333">100%</text>`; // 100% line
+            svgContent += `<text x="${SVG_PADDING - 5}" y="${SVG_PADDING + CHART_HEIGHT}" text-anchor="end" font-size="10" fill="#333">0%</text>`; // Bottom
+        }
+        
+        // X-axis labels (Date) - for start, middle, and end points
+        const dateString = p.date.toLocaleDateString();
+        if (index === 0 || index === Math.floor(maxXIndex / 2) || index === maxXIndex) {
+             svgContent += `
+                <text x="${p.x}" y="${GRAPH_HEIGHT - 5}" 
+                      text-anchor="middle" font-size="10" fill="#333">
+                    ${dateString}
+                </text>
+            `;
+        }
+    });
 
-    // Append to container
-    const chartDiv = document.createElement('div');
-    chartDiv.className = 'graph-card';
-    chartDiv.appendChild(svg);
-    container.appendChild(chartDiv);
-    
-    // Add informational diagram
-    
+    const card = createGraphCard('Successful Progress Grade Trend (Max 150%)', svgContent);
+    document.getElementById('graphsContainer').appendChild(card);
 }
 
 
-/**
- * Main function to fetch all required data and render the profile.
- */
+// --- Key Statistics Rendering (Audits) ---
+function renderKeyStats({ userInfo, auditInfo, xpData }) {
+    const user = userInfo.user?.[0];
+    if (user) {
+        document.getElementById('userName').textContent = user.login;
+        document.getElementById('userId').textContent = `ID: ${user.id}`;
+        
+        // Basic User Identification (NEW FIELDS POPULATED HERE)
+        document.getElementById('userCampus').textContent = user.campus || 'N/A';
+        const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-';
+        document.getElementById('memberSince').textContent = joinDate;
+    }
+
+    // XP Amount
+    const totalXP = xpData.transaction?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    document.getElementById('totalXP').textContent = `${(totalXP / 1000).toFixed(1)} kB`;
+
+    // Audits
+    const auditUser = auditInfo.user?.[0];
+    if (auditUser) {
+        const ratioCard = document.getElementById('statsGrid').children[1];
+        const existingDetail = ratioCard.querySelector('.detail-text');
+        if (existingDetail) existingDetail.remove();
+        
+        document.getElementById('auditRatio').textContent = auditUser.auditRatio.toFixed(2);
+        const detailP = document.createElement('p');
+        detailP.className = 'detail-text';
+        detailP.textContent = `(Up: ${auditUser.totalUp} / Down: ${auditUser.totalDown})`;
+        ratioCard.appendChild(detailP);
+    }
+
+    const projectsCompleted = xpData.transaction?.filter(t => t.object && t.object.type === 'project' && t.amount > 0).length || 0;
+    document.getElementById('projectsCompleted').textContent = projectsCompleted;
+}
+
+
+// --- Render skills using visual bars (Skills) ---
+function renderSkills({ userInfo }) {
+    const container = document.getElementById('userSkillsContainer');
+    container.innerHTML = '';
+    const user = userInfo.user?.[0];
+
+    // Attempt to safely access skills array from the 'attrs' field
+    const rawAttrs = user?.attrs;
+    let parsedAttrs = {};
+
+    if (rawAttrs) {
+        if (typeof rawAttrs === 'string') {
+            try {
+                parsedAttrs = JSON.parse(rawAttrs);
+            } catch (e) {
+                console.error("Failed to parse user.attrs:", e);
+                container.innerHTML = `<p class="detail-text">Error: Failed to parse user attributes JSON.</p>`;
+                return;
+            }
+        } else if (typeof rawAttrs === 'object' && rawAttrs !== null) {
+            parsedAttrs = rawAttrs;
+        }
+    }
+    
+    let skills = [];
+    const triedKeys = ['skills', 'userSkills', 'Skills', 'skillData', 'user_skills']; 
+
+    // Look for common skill array keys
+    if (Array.isArray(parsedAttrs.skills)) {
+         skills = parsedAttrs.skills;
+    } else if (Array.isArray(parsedAttrs.userSkills)) {
+         skills = parsedAttrs.userSkills;
+    } else if (Array.isArray(parsedAttrs.Skills)) {
+         skills = parsedAttrs.Skills;
+    } else if (Array.isArray(parsedAttrs.skillData)) {
+         skills = parsedAttrs.skillData;
+    } else if (Array.isArray(parsedAttrs.user_skills)) {
+         skills = parsedAttrs.user_skills;
+    }
+    
+    if (skills.length === 0) {
+        container.innerHTML = `<p class="detail-text">Skills data structure not recognized in user attributes. (Tried keys: ${triedKeys.join(', ')})</p>`;
+        return;
+    }
+
+    const list = document.createElement('ul');
+    list.className = 'skills-list';
+
+    skills
+        .filter(s => s.name && (s.level || s.amount || s.rate)) // Filter for valid skill objects
+        .sort((a, b) => (b.level || b.amount || b.rate) - (a.level || a.amount || a.rate)) // Sort by level/amount/rate descending
+        .slice(0, 10) // Show top 10 skills
+        .forEach(skill => {
+            const li = document.createElement('li');
+            const name = skill.name;
+            const level = skill.level || skill.amount || skill.rate || 0; // Use 'level', 'amount', or 'rate'
+
+            // Assume max level is 10 for visualization, can be adjusted
+            const maxLevel = 10; 
+            const percentage = Math.min(100, (level / maxLevel) * 100);
+
+            li.innerHTML = `
+                <div class="skill-name">${name}</div>
+                <div class="skill-level-container">
+                    <div class="skill-bar" style="width: ${percentage}%;"></div>
+                    <span class="skill-value">${level.toFixed(1)} / ${maxLevel}</span>
+                </div>
+            `;
+            list.appendChild(li);
+        });
+
+    container.appendChild(list);
+}
+
+
+// --- Render recent progress/results in a table (Grades) ---
+function renderRecentProgress({ progressData }) {
+    const container = document.getElementById('recentProgressTableContainer');
+    const recentProgress = progressData.progress.slice(0, 10); // Show only the 10 most recent records
+
+    if (recentProgress.length === 0) {
+        container.innerHTML = '<p class="detail-text">No recent progress records found.</p>';
+        return;
+    }
+
+    const table = document.createElement('table');
+    table.className = 'progress-table';
+    
+    // Table Header
+    const thead = table.createTHead();
+    const headerRow = thead.insertRow();
+    ['Object', 'Path', 'Grade', 'Date'].forEach(text => {
+        const th = document.createElement('th');
+        th.textContent = text;
+        headerRow.appendChild(th);
+    });
+
+    // Table Body
+    const tbody = table.createTBody();
+    recentProgress.forEach(item => {
+        const row = tbody.insertRow();
+        
+        // 1. Object Name
+        row.insertCell().textContent = item.object?.name || 'N/A';
+        
+        // 2. Path
+        row.insertCell().textContent = item.path || 'N/A';
+        
+        // 3. Grade
+        const gradeCell = row.insertCell();
+        const grade = item.grade * 100;
+        gradeCell.textContent = grade.toFixed(0) + '%';
+        if (grade >= 100) {
+            gradeCell.classList.add('grade-pass');
+        } else if (grade > 0) {
+            gradeCell.classList.add('grade-fail');
+        }
+
+        // 4. Date
+        row.insertCell().textContent = new Date(item.createdAt).toLocaleString();
+    });
+
+    container.innerHTML = ''; // Clear 'loading' message
+    container.appendChild(table);
+}
+
+
+// --- Main Data Loading Function ---
 async function loadProfileData() {
-    const jwt = localStorage.getItem('jwt');
-    if (!jwt) {
-        // Redirect if not logged in (handled by graphql.js or explicit redirect)
-        console.error("No JWT found, redirecting to login.");
-        window.location.href = 'index.html';
+    // 1️⃣ Check for JWT token and redirect if not found
+    if (!localStorage.getItem('jwt')) {
+        console.warn('No JWT found, redirecting to login.');
+        logout();
+        return;
+    }
+
+    let userInfo;
+    let userIdInt;
+    
+    // 2️⃣ Fetch User Info first to get the required userId for parameterized queries
+    try {
+        userInfo = await window.GraphQL.executeQuery(window.GraphQL.queries.GET_USER_INFO);
+        const user = userInfo.user?.[0];
+        if (!user) {
+            throw new Error('User data not found in response.');
+        }
+        userIdInt = user.id; // Get the user ID
+    } catch (error) {
+        console.error('Failed to get initial user info:', error.message);
+        document.getElementById('userName').textContent = 'Error Loading Profile';
         return;
     }
     
+    // 3️⃣ Fetch remaining data concurrently
     try {
-        // Fetch data concurrently
-        const [userInfo, auditInfo, xpData, results] = await Promise.all([
-            window.GraphQL.executeQuery(window.GraphQL.queries.GET_USER_INFO), // Normal query
-            window.GraphQL.executeQuery(window.GraphQL.queries.GET_AUDIT_RATIO), // Nested query
-            window.GraphQL.executeQuery(window.GraphQL.queries.GET_USER_XP), // Normal query for XP transactions
-            window.GraphQL.executeQuery(window.GraphQL.queries.GET_USER_RESULTS) // Used for Pass/Fail stats
+        const [auditInfo, xpData, results, progressData] = await Promise.all([
+            window.GraphQL.executeQuery(window.GraphQL.queries.GET_AUDIT_RATIO), 
+            window.GraphQL.executeQuery(window.GraphQL.queries.GET_USER_XP),
+            window.GraphQL.executeQuery(window.GraphQL.queries.GET_USER_RESULTS),
+            window.GraphQL.executeQuery(
+                window.GraphQL.queries.GET_USER_PROGRESS_BY_ID,
+                { userId: userIdInt }
+            )
         ]);
 
-        const data = { userInfo, auditInfo, xpData, results };
+        const data = { userInfo, auditInfo, xpData, results, progressData };
         
-        // Render basic statistics
-        renderKeyStats(data);
+        // 4️⃣ Clear graphs container once before appending all graphs
+        clearGraphs();
 
-        // Generate the two required SVG graphs
-        generateProjectXPBarChart(xpData.transaction); // Graph 1: XP earned by project
-        generateAuditRatioDonutChart(auditInfo);       // Graph 2: Audit ratio (Up vs Down)
+        // 5️⃣ Render all data
+        // Renders Audits (Audit Ratio stat) and Basic User Info
+        renderKeyStats(data); 
+        // Renders Skills (bar list)
+        renderSkills(data); 
+        // Renders Grades (Recent Progress Table)
+        renderRecentProgress(data);
+        
+        // Render Graphs
+        generateProjectXPBarChart(xpData.transaction); // XP Graph
+        generateAuditRatioDonutChart(auditInfo); // Audits Graph
+        generateProgressLineChart(progressData.progress); // Grades Graph
 
     } catch (error) {
         console.error('Failed to load profile data:', error.message);
-        // Handle 401/expired token specifically
+
+        // Handle expired JWT / unauthorized
         if (error.message.includes('Authentication failed (401)')) {
             alert('Your session has expired. Please log in again.');
-            logout(); // Clear token and redirect
+            logout();
         } else {
             document.getElementById('userName').textContent = 'Error Loading Data';
         }
     }
 }
 
-// Check for JWT and load data when the script runs
+// Run on page load
 window.onload = loadProfileData;

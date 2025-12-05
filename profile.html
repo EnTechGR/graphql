@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - GraphQL Profile</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css"> 
 </head>
-<body style="background: var(--bg-color);">
+<body>
     <div class="profile-container">
         <header class="header">
             <div class="user-info">
                 <h2 id="userName">Loading...</h2>
                 <p class="user-id" id="userId"></p>
+                <p><span class="detail-text">Campus: </span><span id="userCampus">N/A</span></p>
+                <p><span class="detail-text">Member Since: </span><span id="memberSince">N/A</span></p>
             </div>
             <button onclick="logout()" class="logout-btn">Logout</button>
         </header>
@@ -31,14 +33,29 @@
             </div>
         </div>
 
+        <div class="main-content-grid">
+            <section class="skills-section">
+                <h3>Top Skills</h3>
+                <div id="userSkillsContainer">
+                     <p class="detail-text">Loading skills...</p>
+                </div>
+            </section>
+
+            <section class="progress-section">
+                <h3>Recent Progress & Results</h3>
+                <div id="recentProgressTableContainer">
+                    <p class="detail-text">Loading recent results...</p>
+                </div>
+            </section>
+        </div>
+
         <div class="graph-section">
             <h3>Statistics</h3>
-            <p>Graphs will be displayed here...</p>
+            <p>Visualizations of your performance data.</p>
             <div id="graphsContainer"></div>
         </div>
     </div>
 
-    <!-- <script src="js/auth.js"></script> -->
     <script src="js/graphql.js"></script>
     <script src="js/profile.js"></script>
 </body>
