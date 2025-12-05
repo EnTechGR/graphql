@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>School Profile</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Login Page -->
+    <div id="loginContainer" class="container">
+      <div class="login-box">
+        <h1>School Profile</h1>
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="credential">Username or Email:</label>
+            <input type="text" id="credential" name="credential" required />
+          </div>
+          <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+        <div id="loginError" class="error-message" style="display: none"></div>
+      </div>
+    </div>
+
+    <!-- Profile Page -->
+    <div id="profileContainer" class="container" style="display: none">
+      <div class="profile-header">
+        <h1>Your Profile</h1>
+        <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+      </div>
+
+      <!-- User Info Section -->
+      <div class="profile-section">
+        <h2>User Information</h2>
+        <div class="info-grid">
+          <div class="info-card">
+            <h3>Login</h3>
+            <p id="userLogin">-</p>
+          </div>
+          <div class="info-card">
+            <h3>Total XP</h3>
+            <p id="totalXP">-</p>
+          </div>
+          <div class="info-card">
+            <h3>Grade</h3>
+            <p id="userGrade">-</p>
+          </div>
+          <div class="info-card">
+            <h3>Audit Ratio</h3>
+            <p id="auditRatio">-</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Section -->
+      <div class="profile-section">
+        <h2>Statistics</h2>
+        <div class="stats-grid">
+          <div class="stat-chart">
+            <h3>XP Progress Over Time</h3>
+            <svg id="xpChart" class="chart-svg"></svg>
+          </div>
+          <div class="stat-chart">
+            <h3>Projects Pass/Fail Ratio</h3>
+            <svg id="passFailChart" class="chart-svg"></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="graphql.js"></script>
+    <script src="charts.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
