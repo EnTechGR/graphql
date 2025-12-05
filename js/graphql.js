@@ -12,7 +12,13 @@ const GRAPHQL_CONFIG = {
  * @returns {Promise<object>} - The query result
  */
 async function executeQuery(query, variables = {}) {
-    const jwt = localStorage.getItem('jwt');
+    let jwt = localStorage.getItem('jwt'); // Use 'let'
+    
+    // CRITICAL FIX
+    if (jwt) {
+        jwt = jwt.trim(); // Trim token before use
+    }
+    // END CRITICAL FIX
     
     console.log('=== GraphQL Query Debug ===');
     console.log('Endpoint:', GRAPHQL_CONFIG.ENDPOINT);
@@ -49,11 +55,8 @@ async function executeQuery(query, variables = {}) {
             console.error('Response error body:', responseText);
             
             if (response.status === 401) {
-                // Token expired or invalid
                 console.error('Authentication failed - 401 Unauthorized');
                 console.error('This usually means the JWT token is invalid or expired');
-                
-                // Don't auto-redirect - let profile.js handle it
                 throw new Error('Authentication failed (401)');
             }
             throw new Error(`HTTP error! status: ${response.status}, body: ${responseText}`);
@@ -76,7 +79,6 @@ async function executeQuery(query, variables = {}) {
         console.error('Error message:', error.message);
         console.error('Full error:', error);
         
-        // Check for CORS issues
         if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
             console.error('CORS/Network Error detected!');
             console.error('Possible issues:');
