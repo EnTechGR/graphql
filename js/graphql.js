@@ -1,14 +1,9 @@
 // GraphQL API Configuration
 const GRAPHQL_CONFIG = {
-    DOMAIN: 'platform.zone01.gr', // Your school domain
-    ENDPOINT: '', // Will be set dynamically
-    USE_PROXY: true // PROXY ENABLED - proxy server must be running on port 8080
+    DOMAIN: 'platform.zone01.gr',
+    ENDPOINT: 'http://localhost:8080/api/graphql-engine/v1/graphql', // Go server handles API proxy
+    USE_PROXY: true // Always true since we're using the Go server
 };
-
-// Set GraphQL endpoint
-GRAPHQL_CONFIG.ENDPOINT = GRAPHQL_CONFIG.USE_PROXY 
-    ? 'http://localhost:8080/api/graphql-engine/v1/graphql'
-    : `https://${GRAPHQL_CONFIG.DOMAIN}/api/graphql-engine/v1/graphql`;
 
 /**
  * Execute a GraphQL query
@@ -19,6 +14,11 @@ GRAPHQL_CONFIG.ENDPOINT = GRAPHQL_CONFIG.USE_PROXY
 async function executeQuery(query, variables = {}) {
     const jwt = localStorage.getItem('jwt');
     
+    console.log('=== GraphQL Query Debug ===');
+    console.log('Endpoint:', GRAPHQL_CONFIG.ENDPOINT);
+    console.log('JWT exists:', !!jwt);
+    console.log('JWT preview:', jwt ? jwt.substring(0, 30) + '...' : 'none');
+    
     if (!jwt) {
         console.error('No JWT token found');
         window.location.href = 'index.html';
@@ -26,6 +26,9 @@ async function executeQuery(query, variables = {}) {
     }
     
     try {
+        console.log('Making GraphQL request...');
+        console.log('Query:', query.substring(0, 100) + '...');
+        
         const response = await fetch(GRAPHQL_CONFIG.ENDPOINT, {
             method: 'POST',
             headers: {
@@ -38,35 +41,48 @@ async function executeQuery(query, variables = {}) {
             })
         });
         
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        
         if (!response.ok) {
+            const responseText = await response.text();
+            console.error('Response error body:', responseText);
+            
             if (response.status === 401) {
                 // Token expired or invalid
-                console.error('Authentication failed');
-                localStorage.removeItem('jwt');
-                window.location.href = 'index.html';
-                return null;
+                console.error('Authentication failed - 401 Unauthorized');
+                console.error('This usually means the JWT token is invalid or expired');
+                
+                // Don't auto-redirect - let profile.js handle it
+                throw new Error('Authentication failed (401)');
             }
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}, body: ${responseText}`);
         }
         
         const result = await response.json();
+        console.log('GraphQL response received:', result);
         
         if (result.errors) {
             console.error('GraphQL errors:', result.errors);
             throw new Error(result.errors[0].message);
         }
         
+        console.log('Query successful!');
         return result.data;
         
     } catch (error) {
-        console.error('Query execution error:', error);
+        console.error('=== Query Execution Error ===');
+        console.error('Error type:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Full error:', error);
         
         // Check for CORS issues
         if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
-            console.error('CORS Error detected. To fix this:');
-            console.error('1. Set GRAPHQL_CONFIG.USE_PROXY = true in graphql.js');
-            console.error('2. Run the Go proxy server from the proxy/ folder');
-            console.error('3. See README.md for proxy setup instructions');
+            console.error('CORS/Network Error detected!');
+            console.error('Possible issues:');
+            console.error('1. Server not running');
+            console.error('2. Wrong endpoint URL');
+            console.error('3. Network connectivity issue');
         }
         
         throw error;

@@ -1,14 +1,9 @@
-// Configuration - Replace with your actual domain
+// Configuration
 const CONFIG = {
-    DOMAIN: 'platform.zone01.gr', // Your school domain
-    API_BASE: '', // Will be set dynamically
-    USE_PROXY: true // PROXY ENABLED - proxy server must be running on port 8080
+    DOMAIN: 'platform.zone01.gr',
+    API_BASE: 'http://localhost:8080', // Go server handles both static files and API proxy
+    USE_PROXY: true // Always true since we're using the Go server
 };
-
-// Set API base URL
-CONFIG.API_BASE = CONFIG.USE_PROXY 
-    ? 'http://localhost:8080' 
-    : `https://${CONFIG.DOMAIN}`;
 
 // DOM Elements
 const loginForm = document.getElementById('loginForm');
@@ -19,9 +14,28 @@ const errorMessage = document.getElementById('errorMessage');
 const loading = document.getElementById('loading');
 
 // Check if user is already logged in
-if (localStorage.getItem('jwt')) {
-    window.location.href = 'profile.html';
+// Check stored JWT and validate minimal structure + expiry (if present)
+const storedJwt = localStorage.getItem('jwt');
+if (storedJwt) {
+    const payload = parseJWT(storedJwt);
+    let ok = true;
+    if (!payload || typeof payload !== 'object') ok = false;
+    // If token has exp, check if expired
+    if (ok && payload.exp) {
+        const nowSec = Math.floor(Date.now() / 1000);
+        if (payload.exp <= nowSec) {
+            ok = false;
+            console.log('Stored JWT expired, removing it.');
+            localStorage.removeItem('jwt');
+            localStorage.removeItem('userId');
+        }
+    }
+    if (ok) {
+        // token seems valid-ish: go to profile
+        window.location.href = 'profile.html';
+    }
 }
+
 
 // Handle form submission
 loginForm.addEventListener('submit', async (e) => {
@@ -35,82 +49,84 @@ loginForm.addEventListener('submit', async (e) => {
 async function handleLogin() {
     const identifier = identifierInput.value.trim();
     const password = passwordInput.value;
-    
+
     if (!identifier || !password) {
         showError('Please enter both username/email and password');
         return;
     }
-    
-    // Show loading state
+
     setLoadingState(true);
     hideError();
-    
+
     try {
-        // Create credentials for Basic authentication
         const credentials = btoa(`${identifier}:${password}`);
-        
-        // Make login request
         const response = await fetch(`${CONFIG.API_BASE}/api/auth/signin`, {
             method: 'POST',
             headers: {
-                'Authorization': `Basic ${credentials}`
+                'Authorization': `Basic ${credentials}`,
+                'Content-Type': 'application/json'
             }
         });
-        
-        // Handle response
-        if (response.ok) {
-            const jwt = await response.text(); // JWT is returned as plain text
-            
-            // Store JWT in localStorage
-            localStorage.setItem('jwt', jwt);
-            
-            // Decode and store user info (optional)
-            const userInfo = parseJWT(jwt);
-            if (userInfo) {
-                localStorage.setItem('userId', userInfo.sub);
-            }
-            
-            // Show success and redirect
-            showSuccess('Login successful! Redirecting...');
-            setTimeout(() => {
-                window.location.href = 'profile.html';
-            }, 500);
-            
-        } else {
-            // Handle error responses
+
+        const rawText = await response.text();
+
+        if (!response.ok) {
+            console.error('Signin failed', response.status, rawText);
             let errorMsg = 'Invalid credentials. Please try again.';
-            
-            if (response.status === 401) {
-                errorMsg = 'Invalid username/email or password';
-            } else if (response.status === 403) {
-                errorMsg = 'Access forbidden';
-            } else if (response.status >= 500) {
-                errorMsg = 'Server error. Please try again later';
-            }
-            
+            if (response.status === 401) errorMsg = 'Invalid username/email or password';
+            else if (response.status === 403) errorMsg = 'Access forbidden';
+            else if (response.status >= 500) errorMsg = 'Server error. Please try again later';
             showError(errorMsg);
+            return;
         }
-        
+
+        // Try to parse JSON first; if it doesn't parse, treat as raw token
+        let token = null;
+        try {
+            const parsed = JSON.parse(rawText);
+            // Common property names used by some servers
+            token = parsed.token || parsed.jwt || parsed.access_token || parsed.accessToken || null;
+            if (!token && typeof parsed === 'string') token = parsed;
+        } catch (e) {
+            // Not JSON — treat rawText as token string
+            token = rawText.trim();
+        }
+
+        if (!token) {
+            console.error('No token found in response:', rawText);
+            showError('Unexpected response from server. Check console for details.');
+            return;
+        }
+
+        // Basic validation: JWT contains two dots
+        if (token.split('.').length !== 3) {
+            console.warn('Received token does not look like a JWT. Not storing.', token);
+            showError('Received unexpected token format from server.');
+            return;
+        }
+
+        // Store JWT, decode safely
+        localStorage.setItem('jwt', token);
+        const userInfo = parseJWT(token);
+        if (userInfo && userInfo.sub) {
+            localStorage.setItem('userId', userInfo.sub);
+        }
+
+        showSuccess('Login successful — redirecting...');
+        // Use immediate redirect (no setTimeout loop exposure)
+        window.location.href = 'profile.html';
     } catch (error) {
-        console.error('Login error:', error);
-        
-        // Check if it's a CORS error
-        if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
-            showError(
-                'Connection error. This might be a CORS issue. ' +
-                'You may need to use the Go proxy server. Check the console for details.'
-            );
-            console.log('CORS Error detected. To fix this:');
-            console.log('1. Set CONFIG.USE_PROXY = true in auth.js');
-            console.log('2. Run the Go proxy server from the proxy/ folder');
-            console.log('3. See README.md for proxy setup instructions');
+        console.error('Login error', error);
+        if (error.message && (error.message.includes('Failed to fetch') || error.name === 'TypeError')) {
+            showError('Network/CORS error. Consider using the proxy (see README).');
         } else {
-            showError('An unexpected error occurred. Please try again.');
+            showError('Unexpected error. Check console.');
         }
     } finally {
         setLoadingState(false);
     }
 }
+
 
 /**
  * Parse JWT token to extract user information

@@ -6,11 +6,30 @@ if (!localStorage.getItem('jwt')) {
 // Initialize profile on page load
 document.addEventListener('DOMContentLoaded', async () => {
     try {
+        console.log('Loading profile...');
         await loadProfile();
     } catch (error) {
         console.error('Error loading profile:', error);
-        alert('Failed to load profile. You may need to log in again.');
-        logout();
+        
+        // Show error message instead of immediately logging out
+        const userName = document.getElementById('userName');
+        if (userName) {
+            userName.textContent = 'Error loading profile';
+            userName.style.color = '#ef4444';
+        }
+        
+        // Give user option to retry or logout
+        const shouldLogout = confirm(
+            'Failed to load profile data. This might be due to:\n' +
+            '- Invalid or expired JWT token\n' +
+            '- GraphQL API connection issues\n' +
+            '- Network problems\n\n' +
+            'Click OK to logout and try again, or Cancel to stay and check the console.'
+        );
+        
+        if (shouldLogout) {
+            logout();
+        }
     }
 });
 
