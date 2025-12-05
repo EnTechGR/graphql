@@ -163,6 +163,26 @@ const GET_USER_PROGRESS_BY_ID = `
   }
 `;
 
+const GET_USER_SKILLS_RADAR = `
+  query ($userId: Int!) {
+    user: user_by_pk(id: $userId) {
+      id
+      login
+      transactions(
+        order_by: [{ type: asc }]
+        where: {
+          userId: { _eq: $userId }
+          type: { _like: "skill_%" }
+        }
+      ) {
+        type
+        amount
+      }
+    }
+  }
+`;
+
+
 // Export queries for use in other files
 window.GraphQL = {
     executeQuery,
@@ -171,6 +191,7 @@ window.GraphQL = {
         GET_USER_XP,
         GET_AUDIT_RATIO,
         GET_USER_RESULTS,
-        GET_USER_PROGRESS_BY_ID
+        GET_USER_PROGRESS_BY_ID,
+        GET_USER_SKILLS_RADAR
     }
 };

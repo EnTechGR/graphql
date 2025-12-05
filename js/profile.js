@@ -255,7 +255,9 @@ function renderKeyStats({ userInfo, auditInfo, xpData }) {
     }
 
     // XP Amount
-    const totalXP = xpData.transaction?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    const totalXP = xpData.transaction
+        ?.filter(t => t.amount > 0)
+        .reduce((sum, t) => sum + t.amount, 0) || 0;
     document.getElementById('totalXP').textContent = `${(totalXP / 1000).toFixed(1)} kB`;
 
     // Audits
@@ -432,17 +434,21 @@ async function loadProfileData() {
     
     // 3️⃣ Fetch remaining data concurrently
     try {
-        const [auditInfo, xpData, results, progressData] = await Promise.all([
+        const [auditInfo, xpData, results, progressData, skillRadarData] = await Promise.all([
             window.GraphQL.executeQuery(window.GraphQL.queries.GET_AUDIT_RATIO), 
             window.GraphQL.executeQuery(window.GraphQL.queries.GET_USER_XP),
             window.GraphQL.executeQuery(window.GraphQL.queries.GET_USER_RESULTS),
             window.GraphQL.executeQuery(
                 window.GraphQL.queries.GET_USER_PROGRESS_BY_ID,
                 { userId: userIdInt }
+            ),
+            window.GraphQL.executeQuery(
+                window.GraphQL.queries.GET_USER_SKILLS_RADAR,
+                { userId: userIdInt }
             )
-        ]);
+            ]);
 
-        const data = { userInfo, auditInfo, xpData, results, progressData };
+        const data = { userInfo, auditInfo, xpData, results, progressData, skillRadarData };
         
         // 4️⃣ Clear graphs container once before appending all graphs
         clearGraphs();
@@ -459,6 +465,8 @@ async function loadProfileData() {
         generateProjectXPBarChart(xpData.transaction); // XP Graph
         generateAuditRatioDonutChart(auditInfo); // Audits Graph
         generateProgressLineChart(progressData.progress); // Grades Graph
+        generateSkillsRadarChart(skillRadarData);
+
 
     } catch (error) {
         console.error('Failed to load profile data:', error.message);
@@ -472,6 +480,98 @@ async function loadProfileData() {
         }
     }
 }
+
+function generateSkillsRadarChart(skillRadarData) {
+    const rawSkills = skillRadarData.user?.transactions || [];
+
+    // ✅ GROUP + SUM
+    const skillTotals = rawSkills.reduce((acc, t) => {
+        const cleanName = t.type
+            .replace('skill_', '')
+            .replace(/-/g, ' ')
+            .trim()
+            .toLowerCase();
+
+        acc[cleanName] = (acc[cleanName] || 0) + t.amount;
+        return acc;
+    }, {});
+
+    const skills = Object.entries(skillTotals).map(([type, amount]) => ({
+        type,
+        amount
+    }));
+
+    if (skills.length === 0) {
+        document.getElementById('graphsContainer').innerHTML +=
+            '<div class="graph-card"><p class="detail-text">No skill radar data available.</p></div>';
+        return;
+    }
+
+    // ✅ Optional: sort for cleaner shape
+    skills.sort((a, b) => b.amount - a.amount);
+
+    const CENTER_X = GRAPH_WIDTH / 2;   // ✅ MATCHES createGraphCard SVG
+    const CENTER_Y = GRAPH_HEIGHT / 2;
+    const MAX_RADIUS = 130;
+    const MAX_VALUE = Math.max(...skills.map(s => s.amount));
+
+    const angleStep = (Math.PI * 2) / skills.length;
+
+    let svgContent = '';
+
+    // --- GRID ---
+    for (let r = 25; r <= MAX_RADIUS; r += 25) {
+        svgContent += `
+            <circle cx="${CENTER_X}" cy="${CENTER_Y}" r="${r}" 
+                    fill="none" stroke="#ccc" stroke-width="0.5" />
+        `;
+    }
+
+    // --- AXES + LABELS (✅ ONE LOOP ONLY) ---
+    skills.forEach((s, i) => {
+        const angle = i * angleStep - Math.PI / 2;
+
+        const axisX = CENTER_X + Math.cos(angle) * MAX_RADIUS;
+        const axisY = CENTER_Y + Math.sin(angle) * MAX_RADIUS;
+
+        const labelX = CENTER_X + Math.cos(angle) * (MAX_RADIUS + 18);
+        const labelY = CENTER_Y + Math.sin(angle) * (MAX_RADIUS + 18);
+
+        svgContent += `
+            <line x1="${CENTER_X}" y1="${CENTER_Y}" 
+                  x2="${axisX}" y2="${axisY}" 
+                  stroke="#aaa" stroke-width="0.5" />
+
+            <text x="${labelX}" y="${labelY}" 
+                  text-anchor="middle" font-size="11" fill="#333">
+                ${s.type}
+            </text>
+        `;
+    });
+
+    // --- RADAR POLYGON ---
+    const points = skills.map((s, i) => {
+        const angle = i * angleStep - Math.PI / 2;
+        const valueRatio = s.amount / MAX_VALUE;
+
+        const x = CENTER_X + Math.cos(angle) * valueRatio * MAX_RADIUS;
+        const y = CENTER_Y + Math.sin(angle) * valueRatio * MAX_RADIUS;
+
+        return `${x},${y}`;
+    }).join(' ');
+
+    svgContent += `
+        <polygon points="${points}" 
+                 fill="rgba(74,144,226,0.4)" 
+                 stroke="#4a90e2" 
+                 stroke-width="2" />
+    `;
+
+    // ✅ IMPORTANT: DO NOT NEST SVG AGAIN
+    const card = createGraphCard('Technical Skills Radar', svgContent);
+    document.getElementById('graphsContainer').appendChild(card);
+}
+
 
 // Run on page load
 window.onload = loadProfileData;
