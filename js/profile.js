@@ -280,78 +280,65 @@ function renderKeyStats({ userInfo, auditInfo, xpData }) {
 
 
 // --- Render skills using visual bars (Skills) ---
-function renderSkills({ userInfo }) {
+// --- Render Top Skills using skill_* transactions (FINAL FIX) ---
+function renderSkills({ skillRadarData }) {
     const container = document.getElementById('userSkillsContainer');
     container.innerHTML = '';
-    const user = userInfo.user?.[0];
 
-    // Attempt to safely access skills array from the 'attrs' field
-    const rawAttrs = user?.attrs;
-    let parsedAttrs = {};
+    const rawSkills = skillRadarData.user?.transactions || [];
 
-    if (rawAttrs) {
-        if (typeof rawAttrs === 'string') {
-            try {
-                parsedAttrs = JSON.parse(rawAttrs);
-            } catch (e) {
-                console.error("Failed to parse user.attrs:", e);
-                container.innerHTML = `<p class="detail-text">Error: Failed to parse user attributes JSON.</p>`;
-                return;
-            }
-        } else if (typeof rawAttrs === 'object' && rawAttrs !== null) {
-            parsedAttrs = rawAttrs;
-        }
-    }
-    
-    let skills = [];
-    const triedKeys = ['skills', 'userSkills', 'Skills', 'skillData', 'user_skills']; 
-
-    // Look for common skill array keys
-    if (Array.isArray(parsedAttrs.skills)) {
-         skills = parsedAttrs.skills;
-    } else if (Array.isArray(parsedAttrs.userSkills)) {
-         skills = parsedAttrs.userSkills;
-    } else if (Array.isArray(parsedAttrs.Skills)) {
-         skills = parsedAttrs.Skills;
-    } else if (Array.isArray(parsedAttrs.skillData)) {
-         skills = parsedAttrs.skillData;
-    } else if (Array.isArray(parsedAttrs.user_skills)) {
-         skills = parsedAttrs.user_skills;
-    }
-    
-    if (skills.length === 0) {
-        container.innerHTML = `<p class="detail-text">Skills data structure not recognized in user attributes. (Tried keys: ${triedKeys.join(', ')})</p>`;
+    if (rawSkills.length === 0) {
+        container.innerHTML = `<p class="detail-text">No skill data available.</p>`;
         return;
     }
+
+    // ✅ GROUP + SUM skill_* transactions
+    const skillTotals = rawSkills.reduce((acc, t) => {
+        const cleanName = t.type
+            .replace('skill_', '')
+            .replace(/-/g, ' ')
+            .trim()
+            .toLowerCase();
+
+        acc[cleanName] = (acc[cleanName] || 0) + t.amount;
+        return acc;
+    }, {});
+
+    // ✅ Convert to sortable array
+    const skills = Object.entries(skillTotals).map(([name, amount]) => ({
+        name,
+        amount
+    }));
+
+    // ✅ Sort by strongest first & take top 10
+    const topSkills = skills
+        .sort((a, b) => b.amount - a.amount)
+        .slice(0, 10);
+
+    const maxValue = Math.max(...topSkills.map(s => s.amount));
 
     const list = document.createElement('ul');
     list.className = 'skills-list';
 
-    skills
-        .filter(s => s.name && (s.level || s.amount || s.rate)) // Filter for valid skill objects
-        .sort((a, b) => (b.level || b.amount || b.rate) - (a.level || a.amount || a.rate)) // Sort by level/amount/rate descending
-        .slice(0, 10) // Show top 10 skills
-        .forEach(skill => {
-            const li = document.createElement('li');
-            const name = skill.name;
-            const level = skill.level || skill.amount || skill.rate || 0; // Use 'level', 'amount', or 'rate'
+    topSkills.forEach(skill => {
+        const li = document.createElement('li');
 
-            // Assume max level is 10 for visualization, can be adjusted
-            const maxLevel = 10; 
-            const percentage = Math.min(100, (level / maxLevel) * 100);
+        const percentage = (skill.amount / maxValue) * 100;
 
-            li.innerHTML = `
-                <div class="skill-name">${name}</div>
-                <div class="skill-level-container">
-                    <div class="skill-bar" style="width: ${percentage}%;"></div>
-                    <span class="skill-value">${level.toFixed(1)} / ${maxLevel}</span>
-                </div>
-            `;
-            list.appendChild(li);
-        });
+        li.innerHTML = `
+            <div class="skill-name">${skill.name}</div>
+            <div class="skill-level-container">
+                <div class="skill-bar" style="width: ${percentage}%;"></div>
+                <span class="skill-value">${skill.amount.toFixed(0)}</span>
+            </div>
+        `;
+
+        list.appendChild(li);
+    });
 
     container.appendChild(list);
 }
+
 
 
 // --- Render recent progress/results in a table (Grades) ---
