@@ -10,11 +10,11 @@ const SIGNIN_ENDPOINT = CONFIG.API_BASE + '/api/auth/signin';
 
 // DOM Elements (using IDs from your index.html)
 const loginForm = document.getElementById('loginForm');
-const identifierInput = document.getElementById('identifier'); // Correct ID from index.html
+const identifierInput = document.getElementById('username'); // FIXED: Changed 'identifier' to 'username'
 const passwordInput = document.getElementById('password');
-const loginBtn = document.getElementById('loginBtn');
-const errorMessage = document.getElementById('errorMessage'); // Correct ID from index.html
-const loading = document.getElementById('loading');
+const loginBtn = loginForm ? loginForm.querySelector('button[type="submit"]') : null; // FIXED: Target the Sign In button
+const errorMessage = document.getElementById('error-message'); // FIXED: Changed 'errorMessage' to 'error-message'
+const loading = null; // Removed as there is no loading element in the HTML
 
 // Helper to decode Base64 URL parts
 function parseJWT(token) {
@@ -33,21 +33,27 @@ function parseJWT(token) {
     }
 }
 
+
 /**
  * Set loading state
  */
 function setLoadingState(isLoading) {
+    // Only proceed if the essential elements are found
+    if (!loginBtn || !identifierInput || !passwordInput || !errorMessage) return;
+
     if (isLoading) {
         loginBtn.disabled = true;
-        loginBtn.style.display = 'none';
-        loading.style.display = 'flex';
+        // loginBtn.style.display = 'none'; // Keep visible but disabled for now
+        loginBtn.textContent = 'Signing In...'; // Provide feedback
+        // loading.style.display = 'flex'; // Removed
         identifierInput.disabled = true;
         passwordInput.disabled = true;
         errorMessage.style.display = 'none'; // Clear error on load
     } else {
         loginBtn.disabled = false;
-        loginBtn.style.display = 'block';
-        loading.style.display = 'none';
+        // loginBtn.style.display = 'block'; // Keep visible
+        loginBtn.textContent = 'Sign In'; // Restore button text
+        // loading.style.display = 'none'; // Removed
         identifierInput.disabled = false;
         passwordInput.disabled = false;
     }
@@ -184,9 +190,15 @@ if (storedJwt) {
             localStorage.removeItem('userId');
         }
     }
+    
+    // 🌟 PATCH: Only redirect if the user is NOT already on the profile page 🌟
     if (ok) {
-        // token seems valid-ish: go to profile
-        window.location.href = 'profile.html';
+        const currentPath = window.location.pathname.split('/').pop();
+        if (currentPath !== 'profile.html' && currentPath !== '') {
+            console.log('Valid JWT found. Redirecting to profile.html.');
+            window.location.href = 'profile.html';
+        }
+        // If they are on profile.html, do nothing (i.e., let the page load normally)
     }
 }
 

@@ -72,37 +72,46 @@ async function loadProfileData() {
         // Filter elements and listener removed:
         // const progressFilter = document.getElementById('progressFilter'); // REMOVED
         
-        const renderGraphs = () => {
-            // Clear the main charts container (used for ratios, xp, radar)
+        const renderGraphs = async () => { // 🔹 add async
+            // Clear the main charts container
             clearGraphs();
-            
-            // 1. Create a dedicated container for the side-by-side ratio graphs
+
+            // 1. Ratio charts container
             const ratioContainer = document.createElement('div');
             ratioContainer.className = 'ratio-cards-container';
-            
-            // 2. Generate the Audit and Pass/Fail cards (functions now return the card)
+
             const auditCard = generateAuditRatioDonutChart(auditInfo);
             const passFailCard = generatePassFailDonutChart(results);
 
-            // 3. Append the ratio cards to the dedicated container
             if (auditCard) ratioContainer.appendChild(auditCard);
             if (passFailCard) ratioContainer.appendChild(passFailCard);
 
-            // 4. Append the ratio container to the main graphs area
             document.getElementById('graphsContainer').appendChild(ratioContainer);
-            
-            // 5. Append other graphs sequentially below the container
+
+            // Project XP Bar Chart
             const xpCard = generateProjectXPBarChart(xpData.transaction);
             if (xpCard) document.getElementById('graphsContainer').appendChild(xpCard);
-            
+
+            // Skills Radar
             const radarCard = generateSkillsRadarChart(skillRadarData);
             if (radarCard) document.getElementById('graphsContainer').appendChild(radarCard);
-            
-            // 6. Progress chart: Now called with only the data argument
+
+            // Progress chart
             generateProgressAreaChart(progressData.progress);
+
+            // XP-over-time chart
+            if (typeof generateUserXPZinoChart === 'function') {
+                try {
+                    const xpTimeCard = await generateUserXPZinoChart(userIdInt);
+                    if (xpTimeCard) document.getElementById('graphsContainer').appendChild(xpTimeCard);
+                } catch (err) {
+                    console.error('Failed to generate XP-over-time chart:', err);
+                }
+            }
         };
+
         
-        renderGraphs();
+        await renderGraphs();
 
         // progressFilter.addEventListener('change', renderGraphs); // REMOVED
         

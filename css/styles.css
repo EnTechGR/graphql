@@ -259,3 +259,13 @@ body {
     flex: 1 1 45%; /* Allows two cards to fit side-by-side comfortably */
     min-width: 250px;
 }
+
+.graph-card {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 20px;
+    background-color: #fff;
+}
+.graph-card h4 {
+    margin: 0 0 10px 0;
+}
