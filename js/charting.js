@@ -175,11 +175,78 @@ function generatePassFailDonutChart(resultsData) {
     return card; // Return the card
 }
 
+/**
+ * Handles mouse events on the progress chart points.
+ * We attach the tooltip and click listeners to the SVG element containing the circle.
+ * @param {HTMLElement} svgElement - The main SVG element where the chart is drawn.
+ */
+function attachProgressChartListeners(svgElement) {
+    let tooltip = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    tooltip.setAttribute('id', 'progress-tooltip');
+    tooltip.setAttribute('pointer-events', 'none'); // Ensure tooltip doesn't interfere with mouse events
+    tooltip.style.opacity = 0;
+    
+    // Create background rectangle
+    let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute('fill', '#333');
+    rect.setAttribute('rx', 5);
+    rect.setAttribute('ry', 5);
+    rect.setAttribute('opacity', 0.9);
+    tooltip.appendChild(rect);
+
+    // Create text element
+    let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute('fill', 'white');
+    text.setAttribute('font-size', '10');
+    text.setAttribute('y', 15);
+    tooltip.appendChild(text);
+
+    svgElement.appendChild(tooltip);
+
+    // Event listeners
+    svgElement.querySelectorAll('.progress-point').forEach(pointGroup => {
+        const grade = pointGroup.getAttribute('data-grade');
+        const object = pointGroup.getAttribute('data-object');
+        const date = pointGroup.getAttribute('data-date');
+        
+        pointGroup.addEventListener('mouseenter', (e) => {
+            const cx = parseFloat(e.currentTarget.querySelector('circle').getAttribute('cx'));
+            const cy = parseFloat(e.currentTarget.querySelector('circle').getAttribute('cy'));
+            
+            const tooltipText = `${object} | Grade: ${grade}% | ${date}`;
+            text.textContent = tooltipText;
+
+            // Recalculate rectangle size based on text length
+            const textLength = tooltipText.length * 6; // Rough estimate of pixel length
+            rect.setAttribute('width', textLength + 10);
+            rect.setAttribute('height', 20);
+            rect.setAttribute('x', -5); // Offset for padding
+
+            tooltip.setAttribute('transform', `translate(${cx + 10}, ${cy - 10})`);
+            tooltip.style.opacity = 1;
+            e.currentTarget.querySelector('circle').setAttribute('r', 6); // Enlarge on hover
+        });
+
+        pointGroup.addEventListener('mouseleave', (e) => {
+            tooltip.style.opacity = 0;
+            e.currentTarget.querySelector('circle').setAttribute('r', 4); // Reset size
+        });
+
+        pointGroup.addEventListener('click', () => {
+            console.log(`Clicked Progress Event: Object=${object}, Grade=${grade}%, Date=${date}`);
+            // Implement any actual action here (e.g., redirect to project page)
+            alert(`Event Details:\nProject: ${object}\nGrade: ${grade}%\nDate: ${date}`);
+        });
+    });
+}
+
+
 // --- 3. Progress Line Chart (Grades) ---
 function generateProgressAreaChart(progressData, daysFilter = 'all') {
     const now = new Date();
 
     const filtered = progressData
+        // Only include events with grade >= 1 (passes)
         .filter(p => p.grade >= 1 && p.path)
         .filter(p => {
             if (daysFilter === 'all') return true;
@@ -189,9 +256,9 @@ function generateProgressAreaChart(progressData, daysFilter = 'all') {
         .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
     const container = document.getElementById('progressChartContainer');
-    container.innerHTML = ''; // Clear container when rendering
+    container.innerHTML = ''; 
 
-    if (filtered.length < 2) {
+    if (filtered.length < 1) {
         container.innerHTML = `
             <div class="graph-card">
                 <p class="detail-text">Not enough progress data for this time range.</p>
@@ -204,39 +271,39 @@ function generateProgressAreaChart(progressData, daysFilter = 'all') {
     const CHART_WIDTH = GRAPH_WIDTH - 2 * PADDING;
     const CHART_HEIGHT = GRAPH_HEIGHT - 2 * PADDING;
 
-    const maxGrade = 1.5;
+    const maxGrade = 1.5; 
 
     const firstDate = new Date(filtered[0].createdAt);
     const lastDate = new Date(filtered[filtered.length - 1].createdAt);
     const timeRange = lastDate - firstDate;
 
+    // Map data to coordinates
     const points = filtered.map(p => {
+        const dateObj = new Date(p.createdAt);
+        
+        // X position: scaled based on time difference (already ensures separation by time)
         const x =
             PADDING +
-            ((new Date(p.createdAt) - firstDate) / timeRange) * CHART_WIDTH;
+            ((dateObj - firstDate) / timeRange) * CHART_WIDTH;
 
+        // Y position: scaled based on grade
         const y =
             PADDING +
             CHART_HEIGHT *
                 (1 - Math.min(p.grade, maxGrade) / maxGrade);
 
-        return { x, y, grade: p.grade };
+        return { 
+            x, 
+            y, 
+            grade: (p.grade * 100).toFixed(0), 
+            date: dateObj.toLocaleDateString(),
+            object: p.object?.name || 'Unknown'
+        };
     });
-
-    const linePath = points
-        .map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`))
-        .join(' ');
-
-    const areaPath = `
-        ${linePath}
-        L ${points[points.length - 1].x} ${PADDING + CHART_HEIGHT}
-        L ${points[0].x} ${PADDING + CHART_HEIGHT}
-        Z
-    `;
 
     let svgContent = '';
 
-    // Grid
+    // --- Y-Axis Grid (Grades) ---
     for (let i = 0; i <= 5; i++) {
         const y = PADDING + (i / 5) * CHART_HEIGHT;
         svgContent += `<line x1="${PADDING}" y1="${y}" x2="${PADDING + CHART_WIDTH}" y2="${y}" stroke="#eee"/>`;
@@ -245,23 +312,43 @@ function generateProgressAreaChart(progressData, daysFilter = 'all') {
         svgContent += `<text x="${PADDING - 8}" y="${y + 4}" text-anchor="end" font-size="10">${label}</text>`;
     }
 
-    // Axes
+    // --- X-Axis Ticks and Labels (Dates) ---
+    const numTicks = 5;
+    for (let i = 0; i < numTicks; i++) {
+        const timeRatio = i / (numTicks - 1);
+        const tickDate = new Date(firstDate.getTime() + timeRange * timeRatio);
+        const tickX = PADDING + CHART_WIDTH * timeRatio;
+        
+        const dateLabel = tickDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        
+        svgContent += `<line x1="${tickX}" y1="${PADDING + CHART_HEIGHT}" x2="${tickX}" y2="${PADDING + CHART_HEIGHT + 5}" stroke="#aaa"/>`;
+        
+        svgContent += `
+            <g transform="translate(${tickX}, ${PADDING + CHART_HEIGHT + 15}) rotate(-45)">
+                <text x="0" y="0" text-anchor="end" font-size="10" fill="#333">${dateLabel}</text>
+            </g>
+        `;
+    }
+
+    // --- Axes Lines ---
     svgContent += `<line x1="${PADDING}" y1="${PADDING}" x2="${PADDING}" y2="${PADDING + CHART_HEIGHT}" stroke="#333"/>`;
     svgContent += `<line x1="${PADDING}" y1="${PADDING + CHART_HEIGHT}" x2="${PADDING + CHART_WIDTH}" y2="${PADDING + CHART_HEIGHT}" stroke="#333"/>`;
 
-    // Area (Fill)
-    svgContent += `
-        <path d="${areaPath}" fill="rgba(74,144,226,0.25)" />
-    `;
-
-    // Line
-    svgContent += `
-        <path d="${linePath}" fill="none" stroke="#4a90e2" stroke-width="2" />
-    `;
-
-    // Dots
+    // --- Scatter Points (Dots Only) ---
+    // Use an SVG group (<g>) for each point to make the hit area larger and attach data attributes
     points.forEach(p => {
-        svgContent += `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#4a90e2"/>`;
+        svgContent += `
+            <g class="progress-point" 
+               style="cursor: pointer;" 
+               data-grade="${p.grade}" 
+               data-object="${p.object}" 
+               data-date="${p.date}">
+                
+                <circle cx="${p.x}" cy="${p.y}" r="4" fill="#4a90e2" />
+                
+                <circle cx="${p.x}" cy="${p.y}" r="8" fill="transparent" opacity="0"/> 
+            </g>
+        `;
     });
 
     const card = createGraphCard(
@@ -269,8 +356,13 @@ function generateProgressAreaChart(progressData, daysFilter = 'all') {
         svgContent
     );
 
-    // Append to the dedicated container
-    container.appendChild(card);
+    document.getElementById('progressChartContainer').appendChild(card);
+    
+    // ATTACH LISTENERS AFTER THE CHART IS RENDERED IN THE DOM
+    const svgElement = card.querySelector('svg');
+    if (svgElement) {
+        attachProgressChartListeners(svgElement);
+    }
 }
 
 // --- 4. Skills Radar Chart (Skills) ---
