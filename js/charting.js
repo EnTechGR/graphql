@@ -22,8 +22,8 @@ function generateProjectXPBarChart(transactions) {
         .slice(0, 10);
 
     if (projects.length === 0) {
-        document.getElementById('graphsContainer').innerHTML += '<div class="graph-card"><p class="detail-text">No project XP data to display.</p></div>';
-        return;
+        const card = createGraphCard('Top 10 Project XP (kB)', '<p class="detail-text">No project XP data to display.</p>');
+        return card;
     }
 
     const maxXP = Math.max(...projects.map(([, xp]) => xp));
@@ -60,15 +60,15 @@ function generateProjectXPBarChart(transactions) {
     });
 
     const card = createGraphCard('Top 10 Project XP (kB)', svgContent);
-    document.getElementById('graphsContainer').appendChild(card);
+    return card; // Return the card
 }
 
 // --- 2. Audit Ratio Donut Chart (Audits) ---
 function generateAuditRatioDonutChart(auditInfo) {
     const auditUser = auditInfo.user?.[0];
     if (!auditUser || (auditUser.totalUp === 0 && auditUser.totalDown === 0)) {
-        document.getElementById('graphsContainer').innerHTML += '<div class="graph-card"><p class="detail-text">No audit graph data to display.</p></div>';
-        return;
+        const card = createGraphCard('Audit Ratio (Up vs. Down)', '<p class="detail-text">No audit graph data to display.</p>');
+        return card;
     }
 
     const up = auditUser.totalUp;
@@ -112,8 +112,67 @@ function generateAuditRatioDonutChart(auditInfo) {
     `;
 
     const card = createGraphCard('Audit Ratio (Up vs. Down)', svgContent);
-    //document.getElementById('graphsContainer').appendChild(card);
-    return card;
+    return card; // Return the card
+}
+
+// --- 5. Pass/Fail Donut Chart (Results) ---
+function generatePassFailDonutChart(resultsData) {
+    const rawResults = resultsData.result || [];
+
+    const finalResults = rawResults.filter(r => r.grade !== null && r.path);
+
+    if (finalResults.length === 0) {
+        const card = createGraphCard('Project Pass/Fail Ratio', '<p class="detail-text">No final results data to display.</p>');
+        return card;
+    }
+
+    const passes = finalResults.filter(r => r.grade >= 1).length;
+    const fails = finalResults.filter(r => r.grade < 1 && r.grade > 0).length;
+    const total = passes + fails;
+    
+    if (total === 0) {
+        const card = createGraphCard('Project Pass/Fail Ratio', '<p class="detail-text">No graded results to display.</p>');
+        return card;
+    }
+
+    const passRatio = passes / total;
+    const failRatio = fails / total;
+
+    const radius = 100;
+    const center = GRAPH_WIDTH / 2;
+    const strokeWidth = 50;
+    
+    const passColor = '#5cb85c'; 
+    const failColor = '#d9534f'; 
+
+    const passAngle = 360 * passRatio;
+    const failAngle = 360 * failRatio;
+
+    const passPath = describeArc(center, GRAPH_HEIGHT / 2, radius, 0, passAngle);
+    const failPath = describeArc(center, GRAPH_HEIGHT / 2, radius, passAngle, passAngle + failAngle);
+
+
+    let svgContent = `
+        <g transform="translate(0, -20)">
+            <path d="${passPath}" fill="none" stroke="${passColor}" stroke-width="${strokeWidth}" stroke-linecap="butt"/>
+            <path d="${failPath}" fill="none" stroke="${failColor}" stroke-width="${strokeWidth}" stroke-linecap="butt"/>
+            
+            <text x="${center}" y="${GRAPH_HEIGHT / 2 + 10}" text-anchor="middle" font-size="24" font-weight="bold" fill="#333333">
+                ${(passRatio * 100).toFixed(0)}%
+            </text>
+        </g>
+        
+        <g transform="translate(400, 100)">
+            <rect x="0" y="0" width="15" height="15" fill="${passColor}" />
+            <text x="20" y="13" font-size="14" fill="#333333">Passes: ${passes} (${(passRatio * 100).toFixed(1)}%)</text>
+            
+            <rect x="0" y="30" width="15" height="15" fill="${failColor}" />
+            <text x="20" y="43" font-size="14" fill="#333333">Fails: ${fails} (${(failRatio * 100).toFixed(1)}%)</text>
+        </g>
+    `;
+
+    const card = createGraphCard('Project Pass/Fail Ratio', svgContent);
+    return card; // Return the card
 }
 
 // --- 3. Progress Line Chart (Grades) ---
@@ -129,8 +188,11 @@ function generateProgressAreaChart(progressData, daysFilter = 'all') {
         })
         .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
+    const container = document.getElementById('progressChartContainer');
+    container.innerHTML = ''; // Clear container when rendering
+
     if (filtered.length < 2) {
-        document.getElementById('graphsContainer').innerHTML += `
+        container.innerHTML = `
             <div class="graph-card">
                 <p class="detail-text">Not enough progress data for this time range.</p>
             </div>
@@ -207,7 +269,8 @@ function generateProgressAreaChart(progressData, daysFilter = 'all') {
         svgContent
     );
 
-    document.getElementById('graphsContainer').appendChild(card);
+    // Append to the dedicated container
+    container.appendChild(card);
 }
 
 // --- 4. Skills Radar Chart (Skills) ---
@@ -232,9 +295,8 @@ function generateSkillsRadarChart(skillRadarData) {
     }));
 
     if (skills.length === 0) {
-        document.getElementById('graphsContainer').innerHTML +=
-            '<div class="graph-card"><p class="detail-text">No skill radar data available.</p></div>';
-        return;
+        const card = createGraphCard('Technical Skills Radar', '<p class="detail-text">No skill radar data available.</p>');
+        return card;
     }
 
     // Optional: sort for cleaner shape
@@ -298,76 +360,7 @@ function generateSkillsRadarChart(skillRadarData) {
     `;
 
     const card = createGraphCard('Technical Skills Radar', svgContent);
-    document.getElementById('graphsContainer').appendChild(card);
-}
-
-// Add this new function to charting.js
-
-// --- 5. Pass/Fail Donut Chart (Results) ---
-function generatePassFailDonutChart(resultsData) {
-    const rawResults = resultsData.result || [];
-
-    // Filter for results that represent a clear final outcome (type 'piscine-go' or similar could be added if needed)
-    // For simplicity, we count any grade >= 1 as a 'Pass'
-    const finalResults = rawResults.filter(r => r.grade !== null && r.path);
-
-    if (finalResults.length === 0) {
-        document.getElementById('graphsContainer').innerHTML += 
-            '<div class="graph-card"><p class="detail-text">No final results data to display.</p></div>';
-        return;
-    }
-
-    const passes = finalResults.filter(r => r.grade >= 1).length;
-    const fails = finalResults.filter(r => r.grade < 1 && r.grade > 0).length; // Only count attempts with grade > 0 as a 'fail'
-    const total = passes + fails;
-    
-    if (total === 0) {
-        document.getElementById('graphsContainer').innerHTML += 
-            '<div class="graph-card"><p class="detail-text">No graded results to display.</p></div>';
-        return;
-    }
-
-    const passRatio = passes / total;
-    const failRatio = fails / total;
-
-    const radius = 100;
-    const center = GRAPH_WIDTH / 2;
-    const strokeWidth = 50;
-    
-    // Determine the color for Pass (Green) and Fail (Red)
-    const passColor = '#5cb85c'; // Bootstrap Success green
-    const failColor = '#d9534f'; // Bootstrap Danger red
-
-    const passAngle = 360 * passRatio;
-    const failAngle = 360 * failRatio;
-
-    // Use the describeArc helper (from graphUtils.js)
-    const passPath = describeArc(center, GRAPH_HEIGHT / 2, radius, 0, passAngle);
-    const failPath = describeArc(center, GRAPH_HEIGHT / 2, radius, passAngle, passAngle + failAngle);
-
-
-    let svgContent = `
-        <g transform="translate(0, -20)">
-            <path d="${passPath}" fill="none" stroke="${passColor}" stroke-width="${strokeWidth}" stroke-linecap="butt"/>
-            <path d="${failPath}" fill="none" stroke="${failColor}" stroke-width="${strokeWidth}" stroke-linecap="butt"/>
-            
-            <text x="${center}" y="${GRAPH_HEIGHT / 2 + 10}" text-anchor="middle" font-size="24" font-weight="bold" fill="#333333">
-                ${(passRatio * 100).toFixed(0)}%
-            </text>
-        </g>
-        
-        <g transform="translate(400, 100)">
-            <rect x="0" y="0" width="15" height="15" fill="${passColor}" />
-            <text x="20" y="13" font-size="14" fill="#333333">Passes: ${passes} (${(passRatio * 100).toFixed(1)}%)</text>
-            
-            <rect x="0" y="30" width="15" height="15" fill="${failColor}" />
-            <text x="20" y="43" font-size="14" fill="#333333">Fails: ${fails} (${(failRatio * 100).toFixed(1)}%)</text>
-        </g>
-    `;
-
-    const card = createGraphCard('Project Pass/Fail Ratio', svgContent);
-    //document.getElementById('graphsContainer').appendChild(card);
-    return card;
+    return card; // Return the card
 }
 
 export {
@@ -375,5 +368,5 @@ export {
     generateAuditRatioDonutChart,
     generateProgressAreaChart,
     generateSkillsRadarChart,
-    generatePassFailDonutChart // Export the new function
+    generatePassFailDonutChart
 };

@@ -69,40 +69,43 @@ async function loadProfileData() {
         renderSkills(data); 
         renderRecentProgress(data);
         
-        // Render Graphs
-        const filter = document.getElementById('progressFilter');
+        // Get the progress filter element (now located in HTML outside of graphsContainer)
+        const progressFilter = document.getElementById('progressFilter');
         
         const renderGraphs = () => {
-        clearGraphs();
+            // Clear the main charts container (used for ratios, xp, radar)
+            clearGraphs();
+            
+            // 1. Create a dedicated container for the side-by-side ratio graphs
+            const ratioContainer = document.createElement('div');
+            ratioContainer.className = 'ratio-cards-container';
+            
+            // 2. Generate the Audit and Pass/Fail cards (functions now return the card)
+            const auditCard = generateAuditRatioDonutChart(auditInfo);
+            const passFailCard = generatePassFailDonutChart(results);
 
-        // 1. Create a dedicated container for the side-by-side ratio graphs
-        const ratioContainer = document.createElement('div');
-        ratioContainer.className = 'ratio-cards-container'; // Add a specific class for side-by-side layout
-        
-        // 2. Generate the Audit and Pass/Fail cards
-        const auditCard = generateAuditRatioDonutChart(auditInfo);
-        const passFailCard = generatePassFailDonutChart(results);
+            // 3. Append the ratio cards to the dedicated container
+            if (auditCard) ratioContainer.appendChild(auditCard);
+            if (passFailCard) ratioContainer.appendChild(passFailCard);
 
-        // 3. Append the cards to the dedicated container
-        if (auditCard) ratioContainer.appendChild(auditCard);
-        if (passFailCard) ratioContainer.appendChild(passFailCard);
+            // 4. Append the ratio container to the main graphs area
+            document.getElementById('graphsContainer').appendChild(ratioContainer);
+            
+            // 5. Append other graphs sequentially below the container
+            const xpCard = generateProjectXPBarChart(xpData.transaction);
+            if (xpCard) document.getElementById('graphsContainer').appendChild(xpCard);
+            
+            const radarCard = generateSkillsRadarChart(skillRadarData);
+            if (radarCard) document.getElementById('graphsContainer').appendChild(radarCard);
+            
+            // 6. Progress chart is handled separately (appends to #progressChartContainer inside the charting function)
+            generateProgressAreaChart(progressData.progress, progressFilter.value);
+        };
+        
+        renderGraphs();
 
-        // 4. Append the container to the main graphs area
-        document.getElementById('graphsContainer').appendChild(ratioContainer);
-        
-        // 5. Append other graphs sequentially below the container
-        const xpCard = generateProjectXPBarChart(xpData.transaction);
-        if (xpCard) document.getElementById('graphsContainer').appendChild(xpCard);
-        
-        const radarCard = generateSkillsRadarChart(skillRadarData);
-        if (radarCard) document.getElementById('graphsContainer').appendChild(radarCard);
-        
-        // 6. Progress chart remains separate
-        generateProgressAreaChart(progressData.progress, filter.value);
-    };
-
-    renderGraphs();
-    filter.addEventListener('change', renderGraphs);
+        // Attach listener to the one and only progress filter
+        progressFilter.addEventListener('change', renderGraphs);
 
     } catch (error) {
         console.error('Failed to load profile data:', error.message);

@@ -48,20 +48,25 @@
                 </div>
             </section>
         </div>
-        <div class="chart-filters">
-            <label for="progressFilter">Progress Period:</label>
-            <select id="progressFilter">
-                <option value="30">Last 30 Days</option>
-                <option value="90">Last 3 Months</option>
-                <option value="180">Last 6 Months</option>
-                <option value="all" selected>All Time</option>
-            </select>
-        </div>
-
+        
         <div class="graph-section">
             <h3>Statistics</h3>
             <p>Visualizations of your performance data.</p>
+            
             <div id="graphsContainer"></div>
+
+            <div class="progress-trend-wrapper">
+                <div class="chart-filters">
+                    <label for="progressFilter">Progress Period:</label>
+                    <select id="progressFilter">
+                        <option value="30">Last 30 Days</option>
+                        <option value="90">Last 3 Months</option>
+                        <option value="180">Last 6 Months</option>
+                        <option value="all" selected="">All Time</option>
+                    </select>
+                </div>
+                <div id="progressChartContainer"></div>
+            </div>
         </div>
     </div>
 
