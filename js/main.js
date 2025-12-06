@@ -57,7 +57,7 @@ async function loadProfileData() {
                 window.GraphQL.queries.GET_USER_SKILLS_RADAR,
                 { userId: userIdInt }
             )
-            ]);
+        ]);
 
         const data = { userInfo, auditInfo, xpData, results, progressData, skillRadarData };
         
@@ -69,8 +69,8 @@ async function loadProfileData() {
         renderSkills(data); 
         renderRecentProgress(data);
         
-        // Get the progress filter element (now located in HTML outside of graphsContainer)
-        const progressFilter = document.getElementById('progressFilter');
+        // Filter elements and listener removed:
+        // const progressFilter = document.getElementById('progressFilter'); // REMOVED
         
         const renderGraphs = () => {
             // Clear the main charts container (used for ratios, xp, radar)
@@ -98,15 +98,14 @@ async function loadProfileData() {
             const radarCard = generateSkillsRadarChart(skillRadarData);
             if (radarCard) document.getElementById('graphsContainer').appendChild(radarCard);
             
-            // 6. Progress chart is handled separately (appends to #progressChartContainer inside the charting function)
-            generateProgressAreaChart(progressData.progress, progressFilter.value);
+            // 6. Progress chart: Now called with only the data argument
+            generateProgressAreaChart(progressData.progress);
         };
         
         renderGraphs();
 
-        // Attach listener to the one and only progress filter
-        progressFilter.addEventListener('change', renderGraphs);
-
+        // progressFilter.addEventListener('change', renderGraphs); // REMOVED
+        
     } catch (error) {
         console.error('Failed to load profile data:', error.message);
 

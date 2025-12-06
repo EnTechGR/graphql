@@ -1,3 +1,5 @@
+// js/charting.js
+
 import { 
     GRAPH_WIDTH, 
     GRAPH_HEIGHT, 
@@ -7,12 +9,15 @@ import {
     describeArc 
 } from './graphUtils.js';
 
-const am5 = window.am5;
-const am5xy = window.am5xy;
-const am5themes_Animated = window.am5themes_Animated;
+// --- Global amCharts References (Removed top-level assignment) ---
+// const am5 = window.am5; // REMOVED
+// const am5xy = window.am5xy; // REMOVED
+// const am5themes_Animated = window.am5themes_Animated; // REMOVED
+// --------------------------------------------------------------------------
 
 // --- 1. Project XP Bar Chart (XP Amount) ---
 function generateProjectXPBarChart(transactions) {
+    // ... (Implementation remains unchanged) ...
     const projectXpMap = transactions
         .filter(t => t.object && t.object.type === 'project' && t.amount > 0)
         .reduce((acc, t) => {
@@ -64,11 +69,12 @@ function generateProjectXPBarChart(transactions) {
     });
 
     const card = createGraphCard('Top 10 Project XP (kB)', svgContent);
-    return card; // Return the card
+    return card;
 }
 
 // --- 2. Audit Ratio Donut Chart (Audits) ---
 function generateAuditRatioDonutChart(auditInfo) {
+    // ... (Implementation remains unchanged) ...
     const auditUser = auditInfo.user?.[0];
     if (!auditUser || (auditUser.totalUp === 0 && auditUser.totalDown === 0)) {
         const card = createGraphCard('Audit Ratio (Up vs. Down)', '<p class="detail-text">No audit graph data to display.</p>');
@@ -116,11 +122,12 @@ function generateAuditRatioDonutChart(auditInfo) {
     `;
 
     const card = createGraphCard('Audit Ratio (Up vs. Down)', svgContent);
-    return card; // Return the card
+    return card;
 }
 
 // --- 5. Pass/Fail Donut Chart (Results) ---
 function generatePassFailDonutChart(resultsData) {
+    // ... (Implementation remains unchanged) ...
     const rawResults = resultsData.result || [];
 
     const finalResults = rawResults.filter(r => r.grade !== null && r.path);
@@ -176,34 +183,33 @@ function generatePassFailDonutChart(resultsData) {
     `;
 
     const card = createGraphCard('Project Pass/Fail Ratio', svgContent);
-    return card; // Return the card
+    return card;
 }
 
 
 // --- 3. Progress Trend Chart (amCharts Scatter Plot) ---
 /**
  * Generates the Progress Trend Chart using amCharts 5 Scatter Plot.
- * Displays only dots, with Date Axis and Grade Value Axis.
+ * Always shows 'All Time' data.
  */
-function generateProgressAreaChart(progressData, daysFilter = 'all') {
+function generateProgressAreaChart(progressData) { 
+    // MOVED: Assign global variables here to guarantee they are available when the function executes
+    const am5 = window.am5;
+    const am5xy = window.am5xy;
+    const am5themes_Animated = window.am5themes_Animated;
+
     if (!am5 || !am5xy) {
-        console.error("amCharts 5 libraries are not loaded.");
+        // This error message will appear in the console if the CDN scripts failed to load
+        console.error("amCharts 5 libraries are not loaded. Check your index.html script order.");
         return;
     }
 
-    const now = new Date();
-
-    // 1. Filter and Prepare Data for amCharts
     const amChartData = progressData
         // Only include events with grade >= 1 (passes)
         .filter(p => p.grade >= 1 && p.path)
-        .filter(p => {
-            if (daysFilter === 'all') return true;
-            const diff = (now - new Date(p.createdAt)) / (1000 * 60 * 60 * 24);
-            return diff <= Number(daysFilter);
-        })
+        // Filtering by daysFilter removed, now always 'All Time'
         .map(p => ({
-            date: new Date(p.createdAt).getTime(), // amCharts requires Unix timestamp (milliseconds)
+            date: new Date(p.createdAt).getTime(), 
             grade: p.grade,
             gradePercentage: (p.grade * 100).toFixed(0),
             object: p.object?.name || 'Unknown'
@@ -212,20 +218,25 @@ function generateProgressAreaChart(progressData, daysFilter = 'all') {
 
 
     const container = document.getElementById('progressChartContainer');
-    // Clear previous content
     container.innerHTML = ''; 
-    container.style.height = `${GRAPH_HEIGHT}px`; // Set height for amChart container
-    container.classList.add('graph-card'); // Use the same styling
+    container.style.height = `${GRAPH_HEIGHT}px`; 
+    container.classList.add('graph-card'); 
 
     if (amChartData.length < 1) {
-        container.innerHTML = `<p class="detail-text" style="padding: 20px;">Not enough progress data for this time range.</p>`;
+        container.innerHTML = `<p class="detail-text" style="padding: 20px;">Not enough progress data to display.</p>`;
         return;
     }
 
     // 2. Create Root and Theme
+    // Dispose of any previous root instance to prevent memory leaks
+    if (container.chartRoot) {
+        container.chartRoot.dispose();
+    }
     const root = am5.Root.new(container);
+    container.chartRoot = root; // Store root for disposal
+
     root.setThemes([am5themes_Animated.new(root)]);
-    root.interfaceColors.set("text", am5.color(0x333333)); // Match text color
+    root.interfaceColors.set("text", am5.color(0x333333)); 
 
     // 3. Create Chart
     const chart = root.container.children.push(am5xy.XYChart.new(root, {
@@ -247,19 +258,17 @@ function generateProgressAreaChart(progressData, daysFilter = 'all') {
         tooltip: am5.Tooltip.new(root, {})
     }));
     
-    // Hide default X-axis labels and use the Date Axis tooltip for information
+    // Configure X-axis labels
     xAxis.get("renderer").labels.template.setAll({
         rotation: -45,
         textAlign: "end",
-        // Only show a few labels to declutter
-        disabled: false
     });
     
     // 5. Create Y-axis (Value Axis for Grade)
     const yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
         renderer: am5xy.AxisRendererY.new(root, {}),
-        min: 0.8, // Start slightly below 100% to show context
-        max: 1.5 // Max grade 150%
+        min: 0.8, 
+        max: 1.5 
     }));
     
     // Format Y-axis labels as percentage
@@ -272,10 +281,9 @@ function generateProgressAreaChart(progressData, daysFilter = 'all') {
         yAxis: yAxis,
         valueYField: "grade",
         valueXField: "date",
-        // Crucial: Set connect to false to get a scatter plot (dots only)
         connect: false, 
         tooltip: am5.Tooltip.new(root, {
-            labelText: "[bold]{object}[/]\nGrade: {gradePercentage}% \nDate: {date.formatdate()}"
+            labelText: "[bold]{object}[/]\nGrade: {gradePercentage}% \nDate: {date.format(undefined, 'yyyy-MM-dd')}"
         })
     }));
 
@@ -285,30 +293,25 @@ function generateProgressAreaChart(progressData, daysFilter = 'all') {
             sprite: am5.Circle.new(root, {
                 radius: 5,
                 fill: series.get("fill"),
-                // Make points hoverable/clickable
                 interactive: true,
                 cursorOverStyle: "pointer"
             })
         });
     });
     
-    // 7. Add Click Event (The amCharts way to make it clickable)
+    // 7. Add Click Event
     series.bullets.events.on("click", function(ev) {
         const data = ev.target.dataItem.dataContext;
         console.log(`Clicked Progress Event: Object=${data.object}, Grade=${data.gradePercentage}%, Date=${new Date(data.date).toLocaleDateString()}`);
         alert(`Event Details:\nProject: ${data.object}\nGrade: ${data.gradePercentage}%\nDate: ${new Date(data.date).toLocaleDateString()}`);
     });
 
-
     // Set data and finalize
     series.data.setAll(amChartData);
     
-    // Add Scrollbars for better interaction with many points
+    // Add Scrollbars 
     chart.set("scrollbarX", am5.Scrollbar.new(root, {
         orientation: "horizontal"
-    }));
-    chart.set("scrollbarY", am5.Scrollbar.new(root, {
-        orientation: "vertical"
     }));
     
     // Make stuff animate on load
@@ -318,6 +321,7 @@ function generateProgressAreaChart(progressData, daysFilter = 'all') {
 
 // --- 4. Skills Radar Chart (Skills) ---
 function generateSkillsRadarChart(skillRadarData) {
+    // ... (Implementation remains unchanged) ...
     const rawSkills = skillRadarData.user?.transactions || [];
 
     // GROUP + SUM
@@ -403,7 +407,7 @@ function generateSkillsRadarChart(skillRadarData) {
     `;
 
     const card = createGraphCard('Technical Skills Radar', svgContent);
-    return card; // Return the card
+    return card;
 }
 
 export {

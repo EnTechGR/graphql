@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - GraphQL Profile</title>
     <link rel="stylesheet" href="css/styles.css"> 
-    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
 </head>
 <body>
     <div class="profile-container">
@@ -53,25 +50,20 @@
         </div>
         
         <div class="graph-section">
-            <h3>Statistics</h3>
-            <p>Visualizations of your performance data.</p>
-            
-            <div id="graphsContainer"></div>
+                <h3>Statistics</h3>
+                <p>Visualizations of your performance data.</p>
+                
+                <div id="graphsContainer"></div>
 
-            <div class="progress-trend-wrapper">
-                <div class="chart-filters">
-                    <label for="progressFilter">Progress Period:</label>
-                    <select id="progressFilter">
-                        <option value="30">Last 30 Days</option>
-                        <option value="90">Last 3 Months</option>
-                        <option value="180">Last 6 Months</option>
-                        <option value="all" selected="">All Time</option>
-                    </select>
+                <div class="progress-trend-wrapper">
+                    <div id="progressChartContainer"></div>
                 </div>
-                <div id="progressChartContainer"></div>
             </div>
         </div>
-    </div>
+
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
 
     <script src="js/graphql.js"></script>
     <script type="module" src="js/config.js"></script>
