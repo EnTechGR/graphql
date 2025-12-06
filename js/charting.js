@@ -190,31 +190,28 @@ function generatePassFailDonutChart(resultsData) {
 // --- 3. Progress Trend Chart (amCharts Scatter Plot) ---
 /**
  * Generates the Progress Trend Chart using amCharts 5 Scatter Plot.
- * Always shows 'All Time' data.
+ * Displays only dots, with Date Axis and Grade Value Axis.
  */
 function generateProgressAreaChart(progressData) { 
-    // MOVED: Assign global variables here to guarantee they are available when the function executes
     const am5 = window.am5;
     const am5xy = window.am5xy;
     const am5themes_Animated = window.am5themes_Animated;
 
     if (!am5 || !am5xy) {
-        // This error message will appear in the console if the CDN scripts failed to load
         console.error("amCharts 5 libraries are not loaded. Check your index.html script order.");
         return;
     }
 
     const amChartData = progressData
-        // Only include events with grade >= 1 (passes)
-        .filter(p => p.grade >= 1 && p.path)
-        // Filtering by daysFilter removed, now always 'All Time'
-        .map(p => ({
-            date: new Date(p.createdAt).getTime(), 
-            grade: p.grade,
-            gradePercentage: (p.grade * 100).toFixed(0),
-            object: p.object?.name || 'Unknown'
-        }))
-        .sort((a, b) => a.date - b.date);
+    .filter(p => p.grade >= 1 && p.path)
+    .map(p => ({
+        date: new Date(p.createdAt).getTime(),
+        grade: p.grade,
+        gradePercentage: (p.grade * 100).toFixed(0),
+        object: p.object?.name || 'Unknown'
+    }))
+    .sort((a, b) => a.date - b.date); // strictly ascending
+
 
 
     const container = document.getElementById('progressChartContainer');
@@ -228,12 +225,11 @@ function generateProgressAreaChart(progressData) {
     }
 
     // 2. Create Root and Theme
-    // Dispose of any previous root instance to prevent memory leaks
     if (container.chartRoot) {
         container.chartRoot.dispose();
     }
     const root = am5.Root.new(container);
-    container.chartRoot = root; // Store root for disposal
+    container.chartRoot = root;
 
     root.setThemes([am5themes_Animated.new(root)]);
     root.interfaceColors.set("text", am5.color(0x333333)); 
@@ -243,7 +239,7 @@ function generateProgressAreaChart(progressData) {
         panX: true,
         panY: true,
         wheelX: "panX",
-        wheelY: "zoomX",
+        wheelY: "zoomY", 
         pinchZoomX: true
     }));
 
@@ -268,43 +264,40 @@ function generateProgressAreaChart(progressData) {
     const yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
         renderer: am5xy.AxisRendererY.new(root, {}),
         min: 0.8, 
-        max: 1.5 
+        max: 3.0 
     }));
     
     // Format Y-axis labels as percentage
     yAxis.get("renderer").labels.template.set("text", "{value.format(2)}%");
 
     // 6. Create Series (Scatter Plot)
-    const series = chart.series.push(am5xy.LineSeries.new(root, {
-        name: "Progress",
+    const series = chart.series.push(am5xy.XYSeries.new(root, {
         xAxis: xAxis,
         yAxis: yAxis,
-        valueYField: "grade",
         valueXField: "date",
-        connect: false, 
-        tooltip: am5.Tooltip.new(root, {
-            labelText: "[bold]{object}[/]\nGrade: {gradePercentage}% \nDate: {date.format(undefined, 'yyyy-MM-dd')}"
-        })
+        valueYField: "grade",
+        tooltip: am5.Tooltip.new(root, {})
     }));
+
 
     // Customize data points (make them circles/bullets)
     series.bullets.push(function() {
+        const circle = am5.Circle.new(root, {
+            radius: 5,
+            fill: series.get("fill"),
+            interactive: true,
+            cursorOverStyle: "pointer"
+        });
+
+        // Attach tooltip to each bullet
+        circle.set("tooltipText", "[bold]{object}[/]\nGrade: {gradePercentage}% \nDate: {date.formatDate('yyyy-MM-dd')}");
+        
         return am5.Bullet.new(root, {
-            sprite: am5.Circle.new(root, {
-                radius: 5,
-                fill: series.get("fill"),
-                interactive: true,
-                cursorOverStyle: "pointer"
-            })
+            sprite: circle
         });
     });
-    
-    // 7. Add Click Event
-    series.bullets.events.on("click", function(ev) {
-        const data = ev.target.dataItem.dataContext;
-        console.log(`Clicked Progress Event: Object=${data.object}, Grade=${data.gradePercentage}%, Date=${new Date(data.date).toLocaleDateString()}`);
-        alert(`Event Details:\nProject: ${data.object}\nGrade: ${data.gradePercentage}%\nDate: ${new Date(data.date).toLocaleDateString()}`);
-    });
+
+    // 7. Add Click Event: REMOVED. Relying on native hover behavior.
 
     // Set data and finalize
     series.data.setAll(amChartData);
@@ -314,7 +307,6 @@ function generateProgressAreaChart(progressData) {
         orientation: "horizontal"
     }));
     
-    // Make stuff animate on load
     series.appear(1000);
     chart.appear(1000, 100);
 }
