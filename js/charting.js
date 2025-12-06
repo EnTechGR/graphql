@@ -7,6 +7,10 @@ import {
     describeArc 
 } from './graphUtils.js';
 
+const am5 = window.am5;
+const am5xy = window.am5xy;
+const am5themes_Animated = window.am5themes_Animated;
+
 // --- 1. Project XP Bar Chart (XP Amount) ---
 function generateProjectXPBarChart(transactions) {
     const projectXpMap = transactions
@@ -175,77 +179,22 @@ function generatePassFailDonutChart(resultsData) {
     return card; // Return the card
 }
 
+
+// --- 3. Progress Trend Chart (amCharts Scatter Plot) ---
 /**
- * Handles mouse events on the progress chart points.
- * We attach the tooltip and click listeners to the SVG element containing the circle.
- * @param {HTMLElement} svgElement - The main SVG element where the chart is drawn.
+ * Generates the Progress Trend Chart using amCharts 5 Scatter Plot.
+ * Displays only dots, with Date Axis and Grade Value Axis.
  */
-function attachProgressChartListeners(svgElement) {
-    let tooltip = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    tooltip.setAttribute('id', 'progress-tooltip');
-    tooltip.setAttribute('pointer-events', 'none'); // Ensure tooltip doesn't interfere with mouse events
-    tooltip.style.opacity = 0;
-    
-    // Create background rectangle
-    let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    rect.setAttribute('fill', '#333');
-    rect.setAttribute('rx', 5);
-    rect.setAttribute('ry', 5);
-    rect.setAttribute('opacity', 0.9);
-    tooltip.appendChild(rect);
-
-    // Create text element
-    let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text.setAttribute('fill', 'white');
-    text.setAttribute('font-size', '10');
-    text.setAttribute('y', 15);
-    tooltip.appendChild(text);
-
-    svgElement.appendChild(tooltip);
-
-    // Event listeners
-    svgElement.querySelectorAll('.progress-point').forEach(pointGroup => {
-        const grade = pointGroup.getAttribute('data-grade');
-        const object = pointGroup.getAttribute('data-object');
-        const date = pointGroup.getAttribute('data-date');
-        
-        pointGroup.addEventListener('mouseenter', (e) => {
-            const cx = parseFloat(e.currentTarget.querySelector('circle').getAttribute('cx'));
-            const cy = parseFloat(e.currentTarget.querySelector('circle').getAttribute('cy'));
-            
-            const tooltipText = `${object} | Grade: ${grade}% | ${date}`;
-            text.textContent = tooltipText;
-
-            // Recalculate rectangle size based on text length
-            const textLength = tooltipText.length * 6; // Rough estimate of pixel length
-            rect.setAttribute('width', textLength + 10);
-            rect.setAttribute('height', 20);
-            rect.setAttribute('x', -5); // Offset for padding
-
-            tooltip.setAttribute('transform', `translate(${cx + 10}, ${cy - 10})`);
-            tooltip.style.opacity = 1;
-            e.currentTarget.querySelector('circle').setAttribute('r', 6); // Enlarge on hover
-        });
-
-        pointGroup.addEventListener('mouseleave', (e) => {
-            tooltip.style.opacity = 0;
-            e.currentTarget.querySelector('circle').setAttribute('r', 4); // Reset size
-        });
-
-        pointGroup.addEventListener('click', () => {
-            console.log(`Clicked Progress Event: Object=${object}, Grade=${grade}%, Date=${date}`);
-            // Implement any actual action here (e.g., redirect to project page)
-            alert(`Event Details:\nProject: ${object}\nGrade: ${grade}%\nDate: ${date}`);
-        });
-    });
-}
-
-
-// --- 3. Progress Line Chart (Grades) ---
 function generateProgressAreaChart(progressData, daysFilter = 'all') {
+    if (!am5 || !am5xy) {
+        console.error("amCharts 5 libraries are not loaded.");
+        return;
+    }
+
     const now = new Date();
 
-    const filtered = progressData
+    // 1. Filter and Prepare Data for amCharts
+    const amChartData = progressData
         // Only include events with grade >= 1 (passes)
         .filter(p => p.grade >= 1 && p.path)
         .filter(p => {
@@ -253,116 +202,118 @@ function generateProgressAreaChart(progressData, daysFilter = 'all') {
             const diff = (now - new Date(p.createdAt)) / (1000 * 60 * 60 * 24);
             return diff <= Number(daysFilter);
         })
-        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        .map(p => ({
+            date: new Date(p.createdAt).getTime(), // amCharts requires Unix timestamp (milliseconds)
+            grade: p.grade,
+            gradePercentage: (p.grade * 100).toFixed(0),
+            object: p.object?.name || 'Unknown'
+        }))
+        .sort((a, b) => a.date - b.date);
+
 
     const container = document.getElementById('progressChartContainer');
+    // Clear previous content
     container.innerHTML = ''; 
+    container.style.height = `${GRAPH_HEIGHT}px`; // Set height for amChart container
+    container.classList.add('graph-card'); // Use the same styling
 
-    if (filtered.length < 1) {
-        container.innerHTML = `
-            <div class="graph-card">
-                <p class="detail-text">Not enough progress data for this time range.</p>
-            </div>
-        `;
+    if (amChartData.length < 1) {
+        container.innerHTML = `<p class="detail-text" style="padding: 20px;">Not enough progress data for this time range.</p>`;
         return;
     }
 
-    const PADDING = 45;
-    const CHART_WIDTH = GRAPH_WIDTH - 2 * PADDING;
-    const CHART_HEIGHT = GRAPH_HEIGHT - 2 * PADDING;
+    // 2. Create Root and Theme
+    const root = am5.Root.new(container);
+    root.setThemes([am5themes_Animated.new(root)]);
+    root.interfaceColors.set("text", am5.color(0x333333)); // Match text color
 
-    const maxGrade = 1.5; 
+    // 3. Create Chart
+    const chart = root.container.children.push(am5xy.XYChart.new(root, {
+        panX: true,
+        panY: true,
+        wheelX: "panX",
+        wheelY: "zoomX",
+        pinchZoomX: true
+    }));
 
-    const firstDate = new Date(filtered[0].createdAt);
-    const lastDate = new Date(filtered[filtered.length - 1].createdAt);
-    const timeRange = lastDate - firstDate;
-
-    // Map data to coordinates
-    const points = filtered.map(p => {
-        const dateObj = new Date(p.createdAt);
-        
-        // X position: scaled based on time difference (already ensures separation by time)
-        const x =
-            PADDING +
-            ((dateObj - firstDate) / timeRange) * CHART_WIDTH;
-
-        // Y position: scaled based on grade
-        const y =
-            PADDING +
-            CHART_HEIGHT *
-                (1 - Math.min(p.grade, maxGrade) / maxGrade);
-
-        return { 
-            x, 
-            y, 
-            grade: (p.grade * 100).toFixed(0), 
-            date: dateObj.toLocaleDateString(),
-            object: p.object?.name || 'Unknown'
-        };
-    });
-
-    let svgContent = '';
-
-    // --- Y-Axis Grid (Grades) ---
-    for (let i = 0; i <= 5; i++) {
-        const y = PADDING + (i / 5) * CHART_HEIGHT;
-        svgContent += `<line x1="${PADDING}" y1="${y}" x2="${PADDING + CHART_WIDTH}" y2="${y}" stroke="#eee"/>`;
-
-        const label = `${Math.round((1 - i / 5) * 150)}%`;
-        svgContent += `<text x="${PADDING - 8}" y="${y + 4}" text-anchor="end" font-size="10">${label}</text>`;
-    }
-
-    // --- X-Axis Ticks and Labels (Dates) ---
-    const numTicks = 5;
-    for (let i = 0; i < numTicks; i++) {
-        const timeRatio = i / (numTicks - 1);
-        const tickDate = new Date(firstDate.getTime() + timeRange * timeRatio);
-        const tickX = PADDING + CHART_WIDTH * timeRatio;
-        
-        const dateLabel = tickDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-        
-        svgContent += `<line x1="${tickX}" y1="${PADDING + CHART_HEIGHT}" x2="${tickX}" y2="${PADDING + CHART_HEIGHT + 5}" stroke="#aaa"/>`;
-        
-        svgContent += `
-            <g transform="translate(${tickX}, ${PADDING + CHART_HEIGHT + 15}) rotate(-45)">
-                <text x="0" y="0" text-anchor="end" font-size="10" fill="#333">${dateLabel}</text>
-            </g>
-        `;
-    }
-
-    // --- Axes Lines ---
-    svgContent += `<line x1="${PADDING}" y1="${PADDING}" x2="${PADDING}" y2="${PADDING + CHART_HEIGHT}" stroke="#333"/>`;
-    svgContent += `<line x1="${PADDING}" y1="${PADDING + CHART_HEIGHT}" x2="${PADDING + CHART_WIDTH}" y2="${PADDING + CHART_HEIGHT}" stroke="#333"/>`;
-
-    // --- Scatter Points (Dots Only) ---
-    // Use an SVG group (<g>) for each point to make the hit area larger and attach data attributes
-    points.forEach(p => {
-        svgContent += `
-            <g class="progress-point" 
-               style="cursor: pointer;" 
-               data-grade="${p.grade}" 
-               data-object="${p.object}" 
-               data-date="${p.date}">
-                
-                <circle cx="${p.x}" cy="${p.y}" r="4" fill="#4a90e2" />
-                
-                <circle cx="${p.x}" cy="${p.y}" r="8" fill="transparent" opacity="0"/> 
-            </g>
-        `;
-    });
-
-    const card = createGraphCard(
-        `Progress Trend (${daysFilter === 'all' ? 'All Time' : `Last ${daysFilter} Days`})`,
-        svgContent
-    );
-
-    document.getElementById('progressChartContainer').appendChild(card);
+    // 4. Create X-axis (Date Axis)
+    const xAxis = chart.xAxes.push(am5xy.DateAxis.new(root, {
+        maxDeviation: 0.1,
+        baseInterval: {
+            timeUnit: "day",
+            count: 1
+        },
+        renderer: am5xy.AxisRendererX.new(root, {}),
+        tooltip: am5.Tooltip.new(root, {})
+    }));
     
-    // ATTACH LISTENERS AFTER THE CHART IS RENDERED IN THE DOM
-    const svgElement = card.querySelector('svg');
-    if (svgElement) {
-        attachProgressChartListeners(svgElement);
-    }
+    // Hide default X-axis labels and use the Date Axis tooltip for information
+    xAxis.get("renderer").labels.template.setAll({
+        rotation: -45,
+        textAlign: "end",
+        // Only show a few labels to declutter
+        disabled: false
+    });
+    
+    // 5. Create Y-axis (Value Axis for Grade)
+    const yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
+        renderer: am5xy.AxisRendererY.new(root, {}),
+        min: 0.8, // Start slightly below 100% to show context
+        max: 1.5 // Max grade 150%
+    }));
+    
+    // Format Y-axis labels as percentage
+    yAxis.get("renderer").labels.template.set("text", "{value.format(2)}%");
+
+    // 6. Create Series (Scatter Plot)
+    const series = chart.series.push(am5xy.LineSeries.new(root, {
+        name: "Progress",
+        xAxis: xAxis,
+        yAxis: yAxis,
+        valueYField: "grade",
+        valueXField: "date",
+        // Crucial: Set connect to false to get a scatter plot (dots only)
+        connect: false, 
+        tooltip: am5.Tooltip.new(root, {
+            labelText: "[bold]{object}[/]\nGrade: {gradePercentage}% \nDate: {date.formatdate()}"
+        })
+    }));
+
+    // Customize data points (make them circles/bullets)
+    series.bullets.push(function() {
+        return am5.Bullet.new(root, {
+            sprite: am5.Circle.new(root, {
+                radius: 5,
+                fill: series.get("fill"),
+                // Make points hoverable/clickable
+                interactive: true,
+                cursorOverStyle: "pointer"
+            })
+        });
+    });
+    
+    // 7. Add Click Event (The amCharts way to make it clickable)
+    series.bullets.events.on("click", function(ev) {
+        const data = ev.target.dataItem.dataContext;
+        console.log(`Clicked Progress Event: Object=${data.object}, Grade=${data.gradePercentage}%, Date=${new Date(data.date).toLocaleDateString()}`);
+        alert(`Event Details:\nProject: ${data.object}\nGrade: ${data.gradePercentage}%\nDate: ${new Date(data.date).toLocaleDateString()}`);
+    });
+
+
+    // Set data and finalize
+    series.data.setAll(amChartData);
+    
+    // Add Scrollbars for better interaction with many points
+    chart.set("scrollbarX", am5.Scrollbar.new(root, {
+        orientation: "horizontal"
+    }));
+    chart.set("scrollbarY", am5.Scrollbar.new(root, {
+        orientation: "vertical"
+    }));
+    
+    // Make stuff animate on load
+    series.appear(1000);
+    chart.appear(1000, 100);
 }
 
 // --- 4. Skills Radar Chart (Skills) ---
