@@ -17,7 +17,6 @@ import {
 
 // --- 1. Project XP Bar Chart (XP Amount) ---
 function generateProjectXPBarChart(transactions) {
-    // ... (Implementation remains unchanged) ...
     const projectXpMap = transactions
         .filter(t => t.object && t.object.type === 'project' && t.amount > 0)
         .reduce((acc, t) => {
@@ -31,46 +30,55 @@ function generateProjectXPBarChart(transactions) {
         .slice(0, 10);
 
     if (projects.length === 0) {
-        const card = createGraphCard('Top 10 Project XP (kB)', '<p class="detail-text">No project XP data to display.</p>');
-        return card;
+        return createGraphCard('Top 10 Project XP (kB)', '<p class="detail-text">No project XP data to display.</p>');
     }
 
     const maxXP = Math.max(...projects.map(([, xp]) => xp));
     const BAR_SPACING = 5;
-    const BAR_WIDTH = (GRAPH_WIDTH / projects.length) - BAR_SPACING;
-    const SVG_PADDING_BOTTOM = 50; 
+    const CHART_PADDING_LEFT = 50;   // new
+    const CHART_PADDING_RIGHT = 50;  // new
+    const availableWidth = GRAPH_WIDTH - CHART_PADDING_LEFT - CHART_PADDING_RIGHT;
+    const BAR_WIDTH = (availableWidth / projects.length) - BAR_SPACING;
 
-    let svgContent = '';
+    const SVG_PADDING_BOTTOM = 80; // space for rotated labels
+    const CARD_HEIGHT = GRAPH_HEIGHT + 50;
+
+    let svgContent = `<svg width="${GRAPH_WIDTH}" height="${CARD_HEIGHT}">`;
 
     projects.forEach(([name, xp], index) => {
         const barHeight = (xp / maxXP) * (GRAPH_HEIGHT - SVG_PADDING_BOTTOM);
-        const x = index * (BAR_WIDTH + BAR_SPACING);
+        const x = CHART_PADDING_LEFT + index * (BAR_WIDTH + BAR_SPACING);
         const y = GRAPH_HEIGHT - barHeight - SVG_PADDING_BOTTOM;
 
-        // Bar (Primary Color)
+        // Bar
         svgContent += `<rect x="${x}" y="${y}" width="${BAR_WIDTH}" height="${barHeight}" fill="#4a90e2" rx="3" ry="3" />`;
 
-        // Project Name Label (Rotated)
+        // XP Text: inside bar if tall enough, else above
+        const xpText = xp >= 1000 ? (xp / 1000).toFixed(1) + 'kB' : xp + 'B';
+        const xpTextY = barHeight > 15 ? y + 15 : y - 5;
         svgContent += `
-            <g transform="translate(${x + BAR_WIDTH / 2}, ${GRAPH_HEIGHT - SVG_PADDING_BOTTOM + 5}) rotate(-45)">
-                <text x="0" y="0" text-anchor="end" font-size="10" fill="#333333">
+            <text x="${x + BAR_WIDTH / 2}" y="${xpTextY}" 
+                text-anchor="middle" font-size="10" fill="#fff">
+                ${xpText}
+            </text>
+        `;
+
+        // Project Name Label (rotated)
+        svgContent += `
+            <g transform="translate(${x + BAR_WIDTH / 2}, ${GRAPH_HEIGHT - SVG_PADDING_BOTTOM + 10}) rotate(-45)">
+                <text x="0" y="0" text-anchor="end" dominant-baseline="hanging" font-size="10" fill="#333333">
                     ${name.length > 15 ? name.substring(0, 12) + '...' : name}
                 </text>
             </g>
         `;
-
-        // XP Text (above the bar)
-        svgContent += `
-            <text x="${x + BAR_WIDTH / 2}" y="${y - 5}" 
-                  text-anchor="middle" font-size="10" fill="#333333">
-                ${(xp / 1000).toFixed(0)}kB
-            </text>
-        `;
     });
 
-    const card = createGraphCard('Top 10 Project XP (kB)', svgContent);
-    return card;
+    svgContent += `</svg>`;
+
+    return createGraphCard('Top 10 Project XP (kB)', svgContent);
 }
+
+
 
 // --- 2. Audit Ratio Donut Chart (Audits) ---
 function generateAuditRatioDonutChart(auditInfo) {
