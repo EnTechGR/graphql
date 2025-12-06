@@ -73,17 +73,36 @@ async function loadProfileData() {
         const filter = document.getElementById('progressFilter');
         
         const renderGraphs = () => {
-            clearGraphs();
-            generateProjectXPBarChart(xpData.transaction); 
-            generateAuditRatioDonutChart(auditInfo); 
-            generateProgressAreaChart(progressData.progress, filter.value);
-            generateSkillsRadarChart(skillRadarData);
-            generatePassFailDonutChart(results);
-        };
-        
-        renderGraphs();
+        clearGraphs();
 
-        filter.addEventListener('change', renderGraphs);
+        // 1. Create a dedicated container for the side-by-side ratio graphs
+        const ratioContainer = document.createElement('div');
+        ratioContainer.className = 'ratio-cards-container'; // Add a specific class for side-by-side layout
+        
+        // 2. Generate the Audit and Pass/Fail cards
+        const auditCard = generateAuditRatioDonutChart(auditInfo);
+        const passFailCard = generatePassFailDonutChart(results);
+
+        // 3. Append the cards to the dedicated container
+        if (auditCard) ratioContainer.appendChild(auditCard);
+        if (passFailCard) ratioContainer.appendChild(passFailCard);
+
+        // 4. Append the container to the main graphs area
+        document.getElementById('graphsContainer').appendChild(ratioContainer);
+        
+        // 5. Append other graphs sequentially below the container
+        const xpCard = generateProjectXPBarChart(xpData.transaction);
+        if (xpCard) document.getElementById('graphsContainer').appendChild(xpCard);
+        
+        const radarCard = generateSkillsRadarChart(skillRadarData);
+        if (radarCard) document.getElementById('graphsContainer').appendChild(radarCard);
+        
+        // 6. Progress chart remains separate
+        generateProgressAreaChart(progressData.progress, filter.value);
+    };
+
+    renderGraphs();
+    filter.addEventListener('change', renderGraphs);
 
     } catch (error) {
         console.error('Failed to load profile data:', error.message);

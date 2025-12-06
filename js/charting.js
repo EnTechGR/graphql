@@ -112,7 +112,8 @@ function generateAuditRatioDonutChart(auditInfo) {
     `;
 
     const card = createGraphCard('Audit Ratio (Up vs. Down)', svgContent);
-    document.getElementById('graphsContainer').appendChild(card);
+    //document.getElementById('graphsContainer').appendChild(card);
+    return card;
 }
 
 // --- 3. Progress Line Chart (Grades) ---
@@ -365,7 +366,8 @@ function generatePassFailDonutChart(resultsData) {
     `;
 
     const card = createGraphCard('Project Pass/Fail Ratio', svgContent);
-    document.getElementById('graphsContainer').appendChild(card);
+    //document.getElementById('graphsContainer').appendChild(card);
+    return card;
 }
 
 export {
