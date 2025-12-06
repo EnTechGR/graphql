@@ -172,73 +172,99 @@ function generateAuditRatioDonutChart(auditInfo) {
 }
 
 // --- 3. Progress Line Chart (Grades) ---
-function generateProgressLineChart(progressData) {
-    // Filter to completed/successful progress (grade >= 1) that have a path, and sort by date
-    const successfulProgress = progressData
+function generateProgressAreaChart(progressData, daysFilter = 'all') {
+    const now = new Date();
+
+    const filtered = progressData
         .filter(p => p.grade >= 1 && p.path)
+        .filter(p => {
+            if (daysFilter === 'all') return true;
+            const diff = (now - new Date(p.createdAt)) / (1000 * 60 * 60 * 24);
+            return diff <= Number(daysFilter);
+        })
         .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
-    // We need at least 2 points to draw a line
-    if (successfulProgress.length < 2) {
-        document.getElementById('graphsContainer').innerHTML += '<div class="graph-card"><p class="detail-text">Not enough successful progress points to draw a grade trend line chart.</p></div>';
+    if (filtered.length < 2) {
+        document.getElementById('graphsContainer').innerHTML += `
+            <div class="graph-card">
+                <p class="detail-text">Not enough progress data for this time range.</p>
+            </div>
+        `;
         return;
     }
 
-    const SVG_PADDING = 30;
-    const CHART_WIDTH = GRAPH_WIDTH - 2 * SVG_PADDING;
-    const CHART_HEIGHT = GRAPH_HEIGHT - 2 * SVG_PADDING;
-    const maxXIndex = successfulProgress.length - 1;
-    const maxGrade = 1.5; 
+    const PADDING = 45;
+    const CHART_WIDTH = GRAPH_WIDTH - 2 * PADDING;
+    const CHART_HEIGHT = GRAPH_HEIGHT - 2 * PADDING;
 
-    // Mapping data points to SVG coordinates
-    const points = successfulProgress.map((p, index) => {
-        const x = SVG_PADDING + (index / maxXIndex) * CHART_WIDTH;
-        const normalizedGrade = Math.min(p.grade, maxGrade);
-        const y = SVG_PADDING + CHART_HEIGHT * (1 - (normalizedGrade / maxGrade));
-        
-        return { x, y, grade: p.grade, date: new Date(p.createdAt) };
+    const maxGrade = 1.5;
+
+    const firstDate = new Date(filtered[0].createdAt);
+    const lastDate = new Date(filtered[filtered.length - 1].createdAt);
+    const timeRange = lastDate - firstDate;
+
+    const points = filtered.map(p => {
+        const x =
+            PADDING +
+            ((new Date(p.createdAt) - firstDate) / timeRange) * CHART_WIDTH;
+
+        const y =
+            PADDING +
+            CHART_HEIGHT *
+                (1 - Math.min(p.grade, maxGrade) / maxGrade);
+
+        return { x, y, grade: p.grade };
     });
 
-    const polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
+    const linePath = points
+        .map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`))
+        .join(' ');
+
+    const areaPath = `
+        ${linePath}
+        L ${points[points.length - 1].x} ${PADDING + CHART_HEIGHT}
+        L ${points[0].x} ${PADDING + CHART_HEIGHT}
+        Z
+    `;
 
     let svgContent = '';
 
-    // --- Draw Axes ---
-    svgContent += `<line x1="${SVG_PADDING}" y1="${SVG_PADDING + CHART_HEIGHT}" x2="${SVG_PADDING + CHART_WIDTH}" y2="${SVG_PADDING + CHART_HEIGHT}" stroke="#333" stroke-width="1"/>`;
-    svgContent += `<line x1="${SVG_PADDING}" y1="${SVG_PADDING}" x2="${SVG_PADDING}" y2="${SVG_PADDING + CHART_HEIGHT}" stroke="#333" stroke-width="1"/>`;
+    // ✅ Grid
+    for (let i = 0; i <= 5; i++) {
+        const y = PADDING + (i / 5) * CHART_HEIGHT;
+        svgContent += `<line x1="${PADDING}" y1="${y}" x2="${PADDING + CHART_WIDTH}" y2="${y}" stroke="#eee"/>`;
 
-    // --- Draw the Line ---
+        const label = `${Math.round((1 - i / 5) * 150)}%`;
+        svgContent += `<text x="${PADDING - 8}" y="${y + 4}" text-anchor="end" font-size="10">${label}</text>`;
+    }
+
+    // ✅ Axes
+    svgContent += `<line x1="${PADDING}" y1="${PADDING}" x2="${PADDING}" y2="${PADDING + CHART_HEIGHT}" stroke="#333"/>`;
+    svgContent += `<line x1="${PADDING}" y1="${PADDING + CHART_HEIGHT}" x2="${PADDING + CHART_WIDTH}" y2="${PADDING + CHART_HEIGHT}" stroke="#333"/>`;
+
+    // ✅ Area (Fill)
     svgContent += `
-        <polyline fill="none" stroke="#e94e77" stroke-width="2" points="${polylinePoints}" />
+        <path d="${areaPath}" fill="rgba(74,144,226,0.25)" />
     `;
 
-    // --- Draw Points and Labels ---
-    points.forEach((p, index) => {
-        // Circle marker
-        svgContent += `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#e94e77" />`;
-        
-        // Y-axis labels (Grade %)
-        if (index === 0) {
-            svgContent += `<text x="${SVG_PADDING - 5}" y="${SVG_PADDING + 5}" text-anchor="end" font-size="10" fill="#333">150%</text>`; // Top
-            svgContent += `<text x="${SVG_PADDING - 5}" y="${SVG_PADDING + CHART_HEIGHT * (1 - (1/maxGrade)) + 3}" text-anchor="end" font-size="10" fill="#333">100%</text>`; // 100% line
-            svgContent += `<text x="${SVG_PADDING - 5}" y="${SVG_PADDING + CHART_HEIGHT}" text-anchor="end" font-size="10" fill="#333">0%</text>`; // Bottom
-        }
-        
-        // X-axis labels (Date) - for start, middle, and end points
-        const dateString = p.date.toLocaleDateString();
-        if (index === 0 || index === Math.floor(maxXIndex / 2) || index === maxXIndex) {
-             svgContent += `
-                <text x="${p.x}" y="${GRAPH_HEIGHT - 5}" 
-                      text-anchor="middle" font-size="10" fill="#333">
-                    ${dateString}
-                </text>
-            `;
-        }
+    // ✅ Line
+    svgContent += `
+        <path d="${linePath}" fill="none" stroke="#4a90e2" stroke-width="2" />
+    `;
+
+    // ✅ Dots
+    points.forEach(p => {
+        svgContent += `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#4a90e2"/>`;
     });
 
-    const card = createGraphCard('Successful Progress Grade Trend (Max 150%)', svgContent);
+    const card = createGraphCard(
+        `Progress Trend (${daysFilter === 'all' ? 'All Time' : `Last ${daysFilter} Days`})`,
+        svgContent
+    );
+
     document.getElementById('graphsContainer').appendChild(card);
 }
+
 
 
 // --- Key Statistics Rendering (Audits) ---
@@ -451,7 +477,17 @@ async function loadProfileData() {
         // Render Graphs
         generateProjectXPBarChart(xpData.transaction); // XP Graph
         generateAuditRatioDonutChart(auditInfo); // Audits Graph
-        generateProgressLineChart(progressData.progress); // Grades Graph
+        const filter = document.getElementById('progressFilter');
+        generateProgressAreaChart(progressData.progress, filter.value);
+
+        filter.addEventListener('change', () => {
+            clearGraphs();
+            generateProjectXPBarChart(xpData.transaction);
+            generateAuditRatioDonutChart(auditInfo);
+            generateProgressAreaChart(progressData.progress, filter.value);
+            generateSkillsRadarChart(skillRadarData);
+        });
+
         generateSkillsRadarChart(skillRadarData);
 
 

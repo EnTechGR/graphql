@@ -231,3 +231,16 @@ body {
     flex-grow: 1; /* Allow SVG to take available space */
     max-height: 100%;
 }
+
+.chart-filters {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chart-filters select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
