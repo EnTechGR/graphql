@@ -44,65 +44,68 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func proxyHandler(w http.ResponseWriter, r *http.Request) {
-	// Set CORS headers early for both preflight and real requests
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
+    // Handle preflight requests early
+    if r.Method == "OPTIONS" {
+        w.Header().Set("Access-Control-Allow-Origin", "*")
+        w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+        w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        w.WriteHeader(http.StatusOK)
+        return
+    }
 
-	// Handle preflight requests immediately WITHOUT proxying to target
-	if r.Method == "OPTIONS" {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
+    // Build target URL
+    targetURL := TARGET_URL + r.URL.String()
+    log.Printf("PROXY: %s %s -> %s", r.Method, r.URL.Path, targetURL)
 
-	// Build target URL
-	targetURL := TARGET_URL + r.URL.String()
-	log.Printf("PROXY: %s %s -> %s", r.Method, r.URL.Path, targetURL)
+    proxyReq, err := http.NewRequest(r.Method, targetURL, r.Body)
+    if err != nil {
+        log.Printf("Error creating proxy request: %v", err)
+        http.Error(w, "Proxy error", http.StatusInternalServerError)
+        return
+    }
 
-	// Prepare request body (if any). NOTE: r.Body is a ReadCloser and can be used directly.
-	proxyReq, err := http.NewRequest(r.Method, targetURL, r.Body)
-	if err != nil {
-		log.Printf("Error creating proxy request: %v", err)
-		http.Error(w, "Proxy error", http.StatusInternalServerError)
-		return
-	}
+    // Copy headers from original request
+    for name, values := range r.Header {
+        for _, value := range values {
+            proxyReq.Header.Add(name, value)
+        }
+    }
+    proxyReq.Host = TARGET_DOMAIN
 
-	// Copy headers (but override Host to target domain)
-	for name, values := range r.Header {
-		for _, value := range values {
-			proxyReq.Header.Add(name, value)
-		}
-	}
-	proxyReq.Host = TARGET_DOMAIN
+    client := &http.Client{}
+    resp, err := client.Do(proxyReq)
+    if err != nil {
+        log.Printf("Error making proxy request: %v", err)
+        http.Error(w, "Failed to reach target server", http.StatusBadGateway)
+        return
+    }
+    defer resp.Body.Close()
 
-	// Use client with a reasonable timeout (optional)
-	client := &http.Client{}
-	resp, err := client.Do(proxyReq)
-	if err != nil {
-		log.Printf("Error making proxy request: %v", err)
-		http.Error(w, "Failed to reach target server", http.StatusBadGateway)
-		return
-	}
-	defer resp.Body.Close()
+    // Copy backend headers except any CORS headers
+    for name, values := range resp.Header {
+        if strings.HasPrefix(strings.ToLower(name), "access-control-") {
+            continue // skip CORS headers
+        }
+        for _, value := range values {
+            w.Header().Add(name, value)
+        }
+    }
 
-	// Copy backend response headers except CORS to avoid overwriting ours
-	for name, values := range resp.Header {
-		if !strings.HasPrefix(strings.ToLower(name), "access-control-") {
-			for _, value := range values {
-				w.Header().Add(name, value)
-			}
-		}
-	}
+    // ✅ Set your own CORS headers after filtering
+    w.Header().Set("Access-Control-Allow-Origin", "*")
+    w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+    w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+    w.Header().Set("Access-Control-Allow-Credentials", "true")
 
-	// Copy status and body
-	w.WriteHeader(resp.StatusCode)
-	if _, err := io.Copy(w, resp.Body); err != nil {
-		log.Printf("Error copying response body: %v", err)
-	}
+    // Copy status and body
+    w.WriteHeader(resp.StatusCode)
+    if _, err := io.Copy(w, resp.Body); err != nil {
+        log.Printf("Error copying response body: %v", err)
+    }
 
-	log.Printf("PROXY Response: %d", resp.StatusCode)
+    log.Printf("PROXY Response: %d", resp.StatusCode)
 }
+
 
 
 func serveStaticFile(w http.ResponseWriter, r *http.Request) {

@@ -8,8 +8,7 @@ const CONFIG = {
 };
 
 // ✅ Direct real auth endpoint (no proxy)
-const SIGNIN_ENDPOINT = CONFIG.API_BASE + '/api/auth/signin';
-
+const SIGNIN_ENDPOINT = 'https://zone01-proxy.onrender.com/api/auth/signin';
 
 // DOM Elements (using IDs from your index.html)
 const loginForm = document.getElementById('loginForm');
