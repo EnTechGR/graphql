@@ -3,8 +3,8 @@
 // Configuration
 const CONFIG = {
     DOMAIN: 'platform.zone01.gr',
-    API_BASE: 'https://platform.zone01.gr',
-    USE_PROXY: false
+    API_BASE: 'https://zone01-proxy.onrender.com/',
+    USE_PROXY: tue
 };
 
 // ✅ Direct real auth endpoint (no proxy)
