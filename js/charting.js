@@ -410,102 +410,11 @@ function generateSkillsRadarChart(skillRadarData) {
     return card;
 }
 
-// charting.js
-async function generateUserXPZinoChart(userId) {
-    const xpData = await GraphQL.executeQuery(window.GraphQL.queries.GET_USER_XP);
-
-    if (!xpData?.transaction?.length) {
-        return createGraphCard(
-            'Cumulative XP Over Time',
-            '<p class="detail-text">No XP data available.</p>'
-        );
-    }
-
-    // Filter positive XP and sort by date
-    const userXP = xpData.transaction
-        .filter(t => t.amount > 0 && t.object)
-        .map(t => ({
-            date: new Date(t.createdAt),
-            xp: t.amount,
-            object: t.object.name || 'Unknown'
-        }))
-        .sort((a, b) => a.date - b.date);
-
-    // Cumulative XP
-    let cumulative = 0;
-    const cumulativeData = userXP.map(t => {
-        cumulative += t.xp;
-        return { ...t, cumulativeXP: cumulative };
-    });
-    const totalXP = cumulative;
-
-    // SVG dimensions
-    const WIDTH = 800;
-    const HEIGHT = 300;
-    const PADDING = 60; // left/right padding for axes labels
-
-    const dates = cumulativeData.map(d => d.date.getTime());
-    const minDate = Math.min(...dates);
-    const maxDate = Math.max(...dates);
-
-    const xScale = d => PADDING + ((d.getTime() - minDate) / (maxDate - minDate)) * (WIDTH - 2 * PADDING);
-    const yScale = xp => HEIGHT - PADDING - ((xp / totalXP) * (HEIGHT - 2 * PADDING));
-
-    let svgContent = `<svg width="${WIDTH}" height="${HEIGHT}">`;
-
-    // Axes
-    svgContent += `
-        <line x1="${PADDING}" y1="${HEIGHT - PADDING}" x2="${WIDTH - PADDING}" y2="${HEIGHT - PADDING}" stroke="#333"/>
-        <line x1="${PADDING}" y1="${HEIGHT - PADDING}" x2="${PADDING}" y2="${PADDING}" stroke="#333"/>
-    `;
-
-    // Area Path
-    let areaPath = '';
-    cumulativeData.forEach((point, idx) => {
-        const x = xScale(point.date);
-        const y = yScale(point.cumulativeXP);
-        if (idx === 0) {
-            areaPath += `M ${x} ${HEIGHT - PADDING} L ${x} ${y} `;
-        } else {
-            areaPath += `L ${x} ${y} `;
-        }
-    });
-    const lastX = xScale(cumulativeData[cumulativeData.length - 1].date);
-    areaPath += `L ${lastX} ${HEIGHT - PADDING} Z`;
-
-    svgContent += `<path d="${areaPath}" fill="rgba(74,144,226,0.3)" stroke="#4a90e2" stroke-width="2"/>`;
-
-    // Dots
-    cumulativeData.forEach(point => {
-        const cx = xScale(point.date);
-        const cy = yScale(point.cumulativeXP);
-        svgContent += `<circle cx="${cx}" cy="${cy}" r="4" fill="#4a90e2">
-            <title>${point.object}\nCumulative XP: ${point.cumulativeXP}\nDate: ${point.date.toISOString().split('T')[0]}</title>
-        </circle>`;
-    });
-
-    // X-axis labels
-    svgContent += `
-        <text x="${PADDING}" y="${HEIGHT - PADDING + 20}" font-size="10" fill="#333">Start</text>
-        <text x="${WIDTH - PADDING}" y="${HEIGHT - PADDING + 20}" font-size="10" fill="#333" text-anchor="end">End</text>
-    `;
-
-    // Y-axis labels
-    svgContent += `
-        <text x="${PADDING - 10}" y="${yScale(0)}" font-size="10" fill="#333" text-anchor="end">0</text>
-        <text x="${PADDING - 10}" y="${yScale(totalXP)}" font-size="10" fill="#333" text-anchor="end">${totalXP}</text>
-    `;
-
-    svgContent += `</svg>`;
-
-    return createGraphCard('Cumulative XP Over Time', svgContent);
-}
 
 export {
     generateProjectXPBarChart,
     generateAuditRatioDonutChart,
     generateProgressAreaChart,
     generateSkillsRadarChart,
-    generatePassFailDonutChart,
-    generateUserXPZinoChart
+    generatePassFailDonutChart
 };

@@ -14,6 +14,7 @@ import {
     generateSkillsRadarChart,
     generatePassFailDonutChart
 } from './charting.js';
+import { generateUserXPZinoChart } from './charting-xp-zino.js';
 
 
 // --- Main Data Loading Function ---
@@ -108,6 +109,7 @@ async function loadProfileData() {
                     console.error('Failed to generate XP-over-time chart:', err);
                 }
             }
+
         };
 
         
