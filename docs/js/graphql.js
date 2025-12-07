@@ -1,7 +1,7 @@
 // GraphQL API Configuration
 const GRAPHQL_CONFIG = {
     DOMAIN: 'platform.zone01.gr',
-    ENDPOINT: 'https://platform.zone01.gr/api/graphql-engine/v1/graphql',
+    ENDPOINT: 'https://zone01-proxy.onrender.com/',
     USE_PROXY: false
 };
 
