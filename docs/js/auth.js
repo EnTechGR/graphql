@@ -3,10 +3,13 @@
 // Configuration
 const CONFIG = {
     DOMAIN: 'platform.zone01.gr',
-    API_BASE: 'http://localhost:8080', // Go server handles both static files and API proxy
-    USE_PROXY: true // Always true since we're using the Go server
+    API_BASE: 'https://platform.zone01.gr',
+    USE_PROXY: false
 };
+
+// ✅ Direct real auth endpoint (no proxy)
 const SIGNIN_ENDPOINT = CONFIG.API_BASE + '/api/auth/signin';
+
 
 // DOM Elements (using IDs from your index.html)
 const loginForm = document.getElementById('loginForm');

@@ -1,9 +1,10 @@
 // GraphQL API Configuration
 const GRAPHQL_CONFIG = {
     DOMAIN: 'platform.zone01.gr',
-    ENDPOINT: 'http://localhost:8080/api/graphql-engine/v1/graphql', // Go server handles API proxy
-    USE_PROXY: true // Always true since we're using the Go server
+    ENDPOINT: 'https://platform.zone01.gr/api/graphql-engine/v1/graphql',
+    USE_PROXY: false
 };
+
 
 /**
  * Execute a GraphQL query
@@ -39,7 +40,7 @@ async function executeQuery(query, variables = {}) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // IMPORTANT: The Go server should handle adding the JWT to X-Hasura-Admin-Secret header
+                
                 'Authorization': `Bearer ${jwt}` 
             },
             body: JSON.stringify({
