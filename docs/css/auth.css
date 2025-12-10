@@ -1,0 +1,45 @@
+.auth {
+  max-width: 400px;
+  width: 100%;
+}
+
+.auth__card {
+  background: radial-gradient(circle at top left, #1f2937, #020617);
+  border-radius: 1.25rem;
+  padding: 2rem 1.75rem 1.75rem;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.auth__header {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.auth__logo {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 0.75rem;
+}
+
+.auth__title {
+  margin: 0 0 0.25rem;
+  font-size: 1.3rem;
+}
+
+.auth__subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.auth__form {
+  margin-top: 1rem;
+}
+
+.auth__error {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: #fecaca;
+  min-height: 1.2em;
+}

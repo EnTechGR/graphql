@@ -1,0 +1,258 @@
+/* Layout */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr);
+  gap: 1.5rem;
+  padding: 1.5rem;
+  flex: 1;
+}
+
+.panel {
+  background: radial-gradient(circle at top left, #020617, #020617);
+  border-radius: 1rem;
+  padding: 1.25rem 1.25rem 1.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.7);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.panel__title {
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem;
+}
+
+.panel__subtitle {
+  font-size: 0.9rem;
+  margin: 1.25rem 0 0.5rem;
+  color: #9ca3af;
+}
+
+/* Top bar */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+  background: linear-gradient(90deg, #020617, #0f172a);
+}
+
+.topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.topbar__logo-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 180deg,
+    #6366f1,
+    #22c55e,
+    #06b6d4,
+    #6366f1
+  );
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 1);
+}
+
+.topbar__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.topbar__subtitle {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.topbar__logout {
+  font-size: 0.85rem;
+  padding-inline: 0.9rem;
+}
+
+/* Profile summary */
+
+.profile-summary {
+  border-radius: 0.75rem;
+  background: radial-gradient(circle at top left, #020617, #020617);
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  padding: 0.75rem 0.9rem;
+}
+
+.profile-summary__row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.profile-summary__row:last-child {
+  margin-bottom: 0;
+}
+
+.profile-summary .label {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.profile-summary .value {
+  font-size: 0.85rem;
+}
+
+/* Stats grid */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.stat-card {
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.stat-card__label {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin: 0 0 0.25rem;
+}
+
+.stat-card__value {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.stat-card__hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Projects list */
+
+.projects-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.projects-list__item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0.2rem;
+  border-bottom: 1px solid rgba(31, 41, 55, 0.7);
+  font-size: 0.8rem;
+}
+
+.projects-list__item:last-child {
+  border-bottom: none;
+}
+
+.projects-list__name {
+  color: #e5e7eb;
+}
+
+.projects-list__xp {
+  color: #a5b4fc;
+}
+
+/* Charts */
+
+.panel--charts {
+  gap: 1rem;
+}
+
+.chart-card {
+  border-radius: 0.9rem;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  background: radial-gradient(circle at top, #020617, #020617);
+  padding: 0.85rem 0.9rem 1rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.chart-card__header {
+  margin-bottom: 0.4rem;
+}
+
+.chart-card__title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.chart-card__subtitle {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.chart-card__body {
+  margin-top: 0.3rem;
+  border-radius: 0.7rem;
+  background: #020617;
+  border: 1px solid rgba(31, 41, 55, 0.9);
+  padding: 0.4rem;
+}
+
+/* SVG charts */
+
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.chart__axis {
+  stroke: rgba(75, 85, 99, 0.9);
+  stroke-width: 0.3;
+}
+
+.chart__grid {
+  stroke: rgba(31, 41, 55, 0.8);
+  stroke-width: 0.2;
+}
+
+.chart__line {
+  fill: none;
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart__area {
+  fill-opacity: 0.2;
+}
+
+.chart__label {
+  font-size: 3px;
+  fill: #9ca3af;
+}
+
+.chart__bar {
+  rx: 1;
+  ry: 1;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

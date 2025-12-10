@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Zone01 Profile – Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/profile.css" />
+</head>
+<body class="page page--profile">
+  <header class="topbar">
+    <div class="topbar__left">
+      <div class="topbar__logo-circle"></div>
+      <div>
+        <h1 class="topbar__title">Your Zone01 Journey</h1>
+        <p class="topbar__subtitle" id="user-tagline">Loading user...</p>
+      </div>
+    </div>
+    <button class="btn topbar__logout" id="logout-btn">
+      Logout
+    </button>
+  </header>
+
+  <main class="layout">
+    <!-- LEFT: user info and stats cards -->
+    <section class="panel panel--info">
+      <h2 class="panel__title">Profile</h2>
+      <div class="profile-summary">
+        <div class="profile-summary__row">
+          <span class="label">Login</span>
+          <span class="value" id="profile-login">—</span>
+        </div>
+        <div class="profile-summary__row">
+          <span class="label">Campus</span>
+          <span class="value" id="profile-campus">—</span>
+        </div>
+        <div class="profile-summary__row">
+          <span class="label">Member since</span>
+          <span class="value" id="profile-created-at">—</span>
+        </div>
+      </div>
+
+      <h3 class="panel__subtitle">Overview</h3>
+      <div class="stats-grid">
+        <article class="stat-card">
+          <h4 class="stat-card__label">Total XP</h4>
+          <p class="stat-card__value" id="stat-total-xp">—</p>
+          <p class="stat-card__hint">All XP from projects, modules & piscines</p>
+        </article>
+
+        <article class="stat-card">
+          <h4 class="stat-card__label">Audit Ratio</h4>
+          <p class="stat-card__value" id="stat-audit-ratio">—</p>
+          <p class="stat-card__hint">
+            <span id="stat-audit-up">—</span> up / <span id="stat-audit-down">—</span> down
+          </p>
+        </article>
+
+        <article class="stat-card">
+          <h4 class="stat-card__label">Pass rate</h4>
+          <p class="stat-card__value" id="stat-pass-rate">—</p>
+          <p class="stat-card__hint">
+            <span id="stat-pass-count">—</span> pass / <span id="stat-fail-count">—</span> fail
+          </p>
+        </article>
+      </div>
+
+      <h3 class="panel__subtitle">Recent projects</h3>
+      <ul class="projects-list" id="recent-projects"></ul>
+    </section>
+
+    <!-- RIGHT: charts -->
+    <section class="panel panel--charts">
+      <h2 class="panel__title">Statistics</h2>
+
+      <div class="chart-card">
+        <div class="chart-card__header">
+          <h3 class="chart-card__title">XP over time</h3>
+          <p class="chart-card__subtitle">Cumulative XP from your learning journey</p>
+        </div>
+        <div class="chart-card__body">
+          <svg
+            id="xp-chart"
+            class="chart chart--xp"
+            viewBox="0 0 100 60"
+            role="img"
+            aria-label="Cumulative XP over time"
+          >
+            <!-- Drawn via JS -->
+          </svg>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card__header">
+          <h3 class="chart-card__title">Pass vs Fail</h3>
+          <p class="chart-card__subtitle">Based on your result history</p>
+        </div>
+        <div class="chart-card__body">
+          <svg
+            id="passfail-chart"
+            class="chart chart--passfail"
+            viewBox="0 0 100 60"
+            role="img"
+            aria-label="Pass vs fail ratio"
+          >
+            <!-- Drawn via JS -->
+          </svg>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/ui.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/graphql.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html>

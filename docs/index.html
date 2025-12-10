@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Zone01 Profile – Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+</head>
+<body class="page page--auth">
+  <main class="auth">
+    <section class="auth__card">
+      <div class="auth__header">
+        <img src="assets/logo.svg" alt="Logo" class="auth__logo" />
+        <h1 class="auth__title">Sign in to your journey</h1>
+        <p class="auth__subtitle">Use your Zone01 username or email and password.</p>
+      </div>
+
+      <form id="login-form" class="auth__form" novalidate>
+        <div class="field">
+          <label for="identifier" class="field__label">Username or email</label>
+          <input
+            id="identifier"
+            name="identifier"
+            type="text"
+            autocomplete="username"
+            required
+            class="field__input"
+            placeholder="username or email"
+          />
+          <p class="field__error" data-error-for="identifier"></p>
+        </div>
+
+        <div class="field">
+          <label for="password" class="field__label">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+            class="field__input"
+            placeholder="••••••••"
+          />
+          <p class="field__error" data-error-for="password"></p>
+        </div>
+
+        <button type="submit" class="btn btn--primary" id="login-submit">
+          <span>Sign in</span>
+          <span class="btn__spinner" aria-hidden="true"></span>
+        </button>
+
+        <p class="auth__error" id="login-error"></p>
+      </form>
+    </section>
+  </main>
+
+  <script src="js/ui.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>
