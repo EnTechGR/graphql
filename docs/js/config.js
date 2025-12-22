@@ -19,10 +19,6 @@ export function clearGraphs() {
     graphsContainer.innerHTML = '';
   }
 
-  const progressContainer = document.getElementById('progressChartContainer');
-  if (progressContainer) {
-    progressContainer.innerHTML = '';
-  }
 }
 
 
