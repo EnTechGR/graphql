@@ -7,13 +7,11 @@ import {
     renderSkills, 
     renderRecentProgress 
 } from './statsRendering.js';
-import {
-    generateProjectXPBarChart,
-    generateAuditRatioDonutChart,
-    generateProgressAreaChart,
-    generateSkillsRadarChart,
-    generatePassFailDonutChart
-} from './charting.js';
+import { generateProjectXPBarChart } from './charting-xp.js';
+import { generateAuditRatioDonutChart } from './charting-audits.js';
+import { generatePassFailDonutChart } from './charting-results.js';
+import { generateProgressAreaChart } from './charting-progress.js';
+import { generateSkillsRadarChart } from './charting-skills.js';
 import { generateUserXPZinoChart } from './charting-xp-zino.js';
 
 
@@ -70,10 +68,7 @@ async function loadProfileData() {
         renderSkills(data); 
         renderRecentProgress(data);
         
-        // Filter elements and listener removed:
-        // const progressFilter = document.getElementById('progressFilter'); // REMOVED
-        
-        const renderGraphs = async () => { // 🔹 add async
+        const renderGraphs = async () => {
             // Clear the main charts container
             clearGraphs();
 
@@ -109,13 +104,9 @@ async function loadProfileData() {
                     console.error('Failed to generate XP-over-time chart:', err);
                 }
             }
-
         };
 
-        
         await renderGraphs();
-
-        // progressFilter.addEventListener('change', renderGraphs); // REMOVED
         
     } catch (error) {
         console.error('Failed to load profile data:', error.message);

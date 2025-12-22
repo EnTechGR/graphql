@@ -1,25 +1,15 @@
-// GraphQL API Configuration
 const GRAPHQL_CONFIG = {
     DOMAIN: 'platform.zone01.gr',
     ENDPOINT: 'https://zone01-proxy.onrender.com/api/graphql-engine/v1/graphql',
     USE_PROXY: true
 };
 
-
-/**
- * Execute a GraphQL query
- * @param {string} query - The GraphQL query string
- * @param {object} variables - Variables for the query (optional)
- * @returns {Promise<object>} - The query result
- */
 async function executeQuery(query, variables = {}) {
-    let jwt = localStorage.getItem('jwt'); // Use 'let'
+    let jwt = localStorage.getItem('jwt');
     
-    // CRITICAL FIX
     if (jwt) {
-        jwt = jwt.trim(); // Trim token before use
+        jwt = jwt.trim();
     }
-    // END CRITICAL FIX
     
     console.log('=== GraphQL Query Debug ===');
     console.log('Endpoint:', GRAPHQL_CONFIG.ENDPOINT);
@@ -40,7 +30,6 @@ async function executeQuery(query, variables = {}) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                
                 'Authorization': `Bearer ${jwt}` 
             },
             body: JSON.stringify({
@@ -49,7 +38,6 @@ async function executeQuery(query, variables = {}) {
             })
         });
 
-        // The Go server handles the proxy logic, so we look for standard HTTP errors first.
         if (response.status === 401) {
              throw new Error('Authentication failed (401). JWT is invalid or expired.');
         }
@@ -75,7 +63,6 @@ async function executeQuery(query, variables = {}) {
     }
 }
 
-// Get user info, campus, and skills (via attrs)
 const GET_USER_INFO = `
     query {
         user {
@@ -83,12 +70,11 @@ const GET_USER_INFO = `
             login
             campus
             createdAt
-            attrs # Fetches user attributes, assumed to contain skill data
+            attrs
         }
     }
 `;
 
-// Get user XP transactions
 const GET_USER_XP = `
     query {
         transaction(
@@ -113,7 +99,6 @@ const GET_USER_XP = `
     }
 `;
 
-// Get user audit information (Audits)
 const GET_AUDIT_RATIO = `
     query {
         user {
@@ -126,7 +111,6 @@ const GET_AUDIT_RATIO = `
     }
 `;
 
-// Get results (pass/fail)
 const GET_USER_RESULTS = `
     query {
         result(
@@ -145,7 +129,6 @@ const GET_USER_RESULTS = `
     }
 `;
 
-// Get user progress by ID (Grades)
 const GET_USER_PROGRESS_BY_ID = `
   query ($userId: Int!) {
     progress(
@@ -183,8 +166,6 @@ const GET_USER_SKILLS_RADAR = `
   }
 `;
 
-
-// Export queries for use in other files
 window.GraphQL = {
     executeQuery,
     queries: {

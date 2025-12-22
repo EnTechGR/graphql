@@ -12,11 +12,11 @@ const SIGNIN_ENDPOINT = 'https://zone01-proxy.onrender.com/api/auth/signin';
 
 // DOM Elements (using IDs from your index.html)
 const loginForm = document.getElementById('loginForm');
-const identifierInput = document.getElementById('username'); // FIXED: Changed 'identifier' to 'username'
+const identifierInput = document.getElementById('username');
 const passwordInput = document.getElementById('password');
-const loginBtn = loginForm ? loginForm.querySelector('button[type="submit"]') : null; // FIXED: Target the Sign In button
-const errorMessage = document.getElementById('error-message'); // FIXED: Changed 'errorMessage' to 'error-message'
-const loading = null; // Removed as there is no loading element in the HTML
+const loginBtn = loginForm ? loginForm.querySelector('button[type="submit"]') : null;
+const errorMessage = document.getElementById('error-message');
+const loading = null;
 
 // Helper to decode Base64 URL parts
 function parseJWT(token) {
@@ -35,46 +35,32 @@ function parseJWT(token) {
     }
 }
 
-
-/**
- * Set loading state
- */
 function setLoadingState(isLoading) {
-    // Only proceed if the essential elements are found
     if (!loginBtn || !identifierInput || !passwordInput || !errorMessage) return;
 
     if (isLoading) {
         loginBtn.disabled = true;
-        // loginBtn.style.display = 'none'; // Keep visible but disabled for now
-        loginBtn.textContent = 'Signing In...'; // Provide feedback
-        // loading.style.display = 'flex'; // Removed
+        loginBtn.textContent = 'Signing In...';
         identifierInput.disabled = true;
         passwordInput.disabled = true;
-        errorMessage.style.display = 'none'; // Clear error on load
+        errorMessage.style.display = 'none';
     } else {
         loginBtn.disabled = false;
-        // loginBtn.style.display = 'block'; // Keep visible
-        loginBtn.textContent = 'Sign In'; // Restore button text
-        // loading.style.display = 'none'; // Removed
+        loginBtn.textContent = 'Sign In';
         identifierInput.disabled = false;
         passwordInput.disabled = false;
     }
 }
 
-/**
- * Login function
- */
 async function handleLogin() {
     setLoadingState(true);
     
     const username = identifierInput.value;
     const password = passwordInput.value;
     
-    // --- 1. PATCH: Robust Basic Auth Encoding (Fixes InvalidCharacterError) ---
     const credentialsString = `${username}:${password}`;
     let credentials;
     try {
-        // Safely encode username:password string using UTF-8 before Base64 encoding.
         const utf8Bytes = new TextEncoder().encode(credentialsString);
         const binaryString = String.fromCodePoint(...utf8Bytes);
         credentials = btoa(binaryString);
@@ -85,7 +71,6 @@ async function handleLogin() {
         setLoadingState(false);
         return;
     }
-    // --- END PATCH ---
 
     try {
         const response = await fetch(SIGNIN_ENDPOINT, {
@@ -95,12 +80,10 @@ async function handleLogin() {
             }
         });
 
-        // Read response text once for parsing below
-        const rawResponseText = await response.text(); 
+        const rawResponseText = await response.text();
 
         if (!response.ok) {
             setLoadingState(false);
-            // Handle error status
             if (response.status === 401) {
                 errorMessage.textContent = 'Invalid credentials. Please try again.';
             } else {
@@ -110,16 +93,13 @@ async function handleLogin() {
             return;
         }
 
-        // --- 2. CRITICAL PATCH: Robust JWT Parsing and Quote Removal (Fixes "Not valid base64url") ---
         let jwt = null;
         try {
             const parsed = JSON.parse(rawResponseText);
             
             if (typeof parsed === 'string') {
-                // Scenario 1: JWT returned as a raw quoted string, JSON.parse unquotes it.
                 jwt = parsed;
             } else {
-                // Scenario 2: JWT returned as a JSON object
                 jwt = parsed.token 
                     || parsed.jwt 
                     || parsed.access_token 
@@ -127,35 +107,27 @@ async function handleLogin() {
                     || null;
             }
         } catch (e) {
-            // Scenario 3: Not JSON — treat raw response as the token string.
             jwt = rawResponseText; 
         }
 
-        // Final cleanup: Remove quotes and trim whitespace from the token
         if (jwt && typeof jwt === 'string') {
             jwt = jwt.trim();
-            // Remove outer quotes if present (double or single)
             if ((jwt.startsWith('"') && jwt.endsWith('"')) || 
                 (jwt.startsWith("'") && jwt.endsWith("'"))) {
                 jwt = jwt.slice(1, -1);
             }
         }
         
-        // Final check that a clean token was acquired
-        if (!jwt || jwt.length < 10) { // Check for minimal JWT length
+        if (!jwt || jwt.length < 10) {
             console.error('Login successful, but no valid JWT found in response.');
             errorMessage.textContent = 'Login successful, but server response was invalid.';
             errorMessage.style.display = 'block';
             setLoadingState(false);
             return;
         }
-        // --- END CRITICAL PATCH ---
 
-
-        // Store the clean JWT and redirect
         localStorage.setItem('jwt', jwt);
         
-        // Attempt to extract userId and store it (for queries using $userId)
         const payload = parseJWT(jwt);
         if (payload && payload['https://hasura.io/jwt/claims'] && payload['https://hasura.io/jwt/claims']['x-hasura-user-id']) {
             localStorage.setItem('userId', payload['https://hasura.io/jwt/claims']['x-hasura-user-id']);
@@ -175,14 +147,11 @@ async function handleLogin() {
     }
 }
 
-// Check if user is already logged in
-// Check stored JWT and validate minimal structure + expiry (if present)
 const storedJwt = localStorage.getItem('jwt');
 if (storedJwt) {
     const payload = parseJWT(storedJwt);
     let ok = true;
     if (!payload || typeof payload !== 'object') ok = false;
-    // If token has exp, check if expired
     if (ok && payload.exp) {
         const nowSec = Math.floor(Date.now() / 1000);
         if (payload.exp <= nowSec) {
@@ -193,18 +162,15 @@ if (storedJwt) {
         }
     }
     
-    // 🌟 PATCH: Only redirect if the user is NOT already on the profile page 🌟
     if (ok) {
         const currentPath = window.location.pathname.split('/').pop();
         if (currentPath !== 'profile.html' && currentPath !== '') {
             console.log('Valid JWT found. Redirecting to profile.html.');
             window.location.href = 'profile.html';
         }
-        // If they are on profile.html, do nothing (i.e., let the page load normally)
     }
 }
 
-// Handle form submission
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -212,9 +178,6 @@ if (loginForm) {
     });
 }
 
-/**
- * Show error message
- */
 function showSuccess(message) {
     if (errorMessage) {
         errorMessage.style.display = 'block';
@@ -225,9 +188,6 @@ function showSuccess(message) {
     }
 }
 
-/**
- * Logout function (can be called from profile page)
- */
 function logout() {
     localStorage.removeItem('jwt');
     localStorage.removeItem('userId');

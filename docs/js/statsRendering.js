@@ -1,25 +1,21 @@
 import { createGraphCard, GRAPH_WIDTH, GRAPH_HEIGHT } from './config.js';
 
-// --- Key Statistics Rendering (Audits) ---
 function renderKeyStats({ userInfo, auditInfo, xpData }) {
     const user = userInfo.user?.[0];
     if (user) {
         document.getElementById('userName').textContent = user.login;
         document.getElementById('userId').textContent = `ID: ${user.id}`;
         
-        // Basic User Identification
         document.getElementById('userCampus').textContent = user.campus || 'N/A';
         const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-';
         document.getElementById('memberSince').textContent = joinDate;
     }
 
-    // XP Amount
     const totalXP = xpData.transaction
         ?.filter(t => t.amount > 0)
         .reduce((sum, t) => sum + t.amount, 0) || 0;
     document.getElementById('totalXP').textContent = `${(totalXP / 1000).toFixed(1)} kB`;
 
-    // Audits
     const auditUser = auditInfo.user?.[0];
     if (auditUser) {
         const ratioCard = document.getElementById('statsGrid').children[1];
@@ -37,8 +33,6 @@ function renderKeyStats({ userInfo, auditInfo, xpData }) {
     document.getElementById('projectsCompleted').textContent = projectsCompleted;
 }
 
-
-// --- Render skills using visual bars (Skills) ---
 function renderSkills({ skillRadarData }) {
     const container = document.getElementById('userSkillsContainer');
     container.innerHTML = '';
@@ -50,7 +44,6 @@ function renderSkills({ skillRadarData }) {
         return;
     }
 
-    // GROUP + SUM skill_* transactions
     const skillTotals = rawSkills.reduce((acc, t) => {
         const cleanName = t.type
             .replace('skill_', '')
@@ -62,13 +55,11 @@ function renderSkills({ skillRadarData }) {
         return acc;
     }, {});
 
-    // Convert to sortable array
     const skills = Object.entries(skillTotals).map(([name, amount]) => ({
         name,
         amount
     }));
 
-    // Sort by strongest first & take top 10
     const topSkills = skills
         .sort((a, b) => b.amount - a.amount)
         .slice(0, 10);
@@ -97,11 +88,9 @@ function renderSkills({ skillRadarData }) {
     container.appendChild(list);
 }
 
-
-// --- Render recent progress/results in a table (Grades) ---
 function renderRecentProgress({ progressData }) {
     const container = document.getElementById('recentProgressTableContainer');
-    const recentProgress = progressData.progress.slice(0, 10); // Show only the 10 most recent records
+    const recentProgress = progressData.progress.slice(0, 10);
 
     if (recentProgress.length === 0) {
         container.innerHTML = '<p class="detail-text">No recent progress records found.</p>';
@@ -111,7 +100,6 @@ function renderRecentProgress({ progressData }) {
     const table = document.createElement('table');
     table.className = 'progress-table';
     
-    // Table Header
     const thead = table.createTHead();
     const headerRow = thead.insertRow();
     ['Object', 'Path', 'Grade', 'Date'].forEach(text => {
@@ -120,18 +108,13 @@ function renderRecentProgress({ progressData }) {
         headerRow.appendChild(th);
     });
 
-    // Table Body
     const tbody = table.createTBody();
     recentProgress.forEach(item => {
         const row = tbody.insertRow();
         
-        // 1. Object Name
         row.insertCell().textContent = item.object?.name || 'N/A';
-        
-        // 2. Path
         row.insertCell().textContent = item.path || 'N/A';
         
-        // 3. Grade
         const gradeCell = row.insertCell();
         const grade = item.grade * 100;
         gradeCell.textContent = grade.toFixed(0) + '%';
@@ -141,11 +124,10 @@ function renderRecentProgress({ progressData }) {
             gradeCell.classList.add('grade-fail');
         }
 
-        // 4. Date
         row.insertCell().textContent = new Date(item.createdAt).toLocaleString();
     });
 
-    container.innerHTML = ''; // Clear 'loading' message
+    container.innerHTML = '';
     container.appendChild(table);
 }
 

@@ -10,15 +10,13 @@ import (
 )
 
 const (
-	// Change this to your school domain
 	TARGET_DOMAIN = "platform.zone01.gr"
 	TARGET_URL    = "https://" + TARGET_DOMAIN
 	SERVER_PORT   = ":8080"
-	STATIC_DIR    = "." // Serve files from current directory
+	STATIC_DIR    = "."
 )
 
 func main() {
-	// Register handlers
 	http.HandleFunc("/", mainHandler)
 
 	log.Printf("Starting server on http://localhost%s", SERVER_PORT)
@@ -33,18 +31,15 @@ func main() {
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
-	// Check if this is an API request
 	if strings.HasPrefix(r.URL.Path, "/api/") {
 		proxyHandler(w, r)
 		return
 	}
 
-	// Otherwise, serve static files
 	serveStaticFile(w, r)
 }
 
 func proxyHandler(w http.ResponseWriter, r *http.Request) {
-    // Handle preflight requests early
     if r.Method == "OPTIONS" {
         w.Header().Set("Access-Control-Allow-Origin", "*")
         w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
@@ -53,7 +48,6 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Build target URL
     targetURL := TARGET_URL + r.URL.String()
     log.Printf("PROXY: %s %s -> %s", r.Method, r.URL.Path, targetURL)
 
@@ -64,7 +58,6 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Copy headers from original request
     for name, values := range r.Header {
         for _, value := range values {
             proxyReq.Header.Add(name, value)
@@ -81,23 +74,20 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
     }
     defer resp.Body.Close()
 
-    // Copy backend headers except any CORS headers
     for name, values := range resp.Header {
         if strings.HasPrefix(strings.ToLower(name), "access-control-") {
-            continue // skip CORS headers
+            continue
         }
         for _, value := range values {
             w.Header().Add(name, value)
         }
     }
 
-    // ✅ Set your own CORS headers after filtering
     w.Header().Set("Access-Control-Allow-Origin", "*")
     w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
     w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
     w.Header().Set("Access-Control-Allow-Credentials", "true")
 
-    // Copy status and body
     w.WriteHeader(resp.StatusCode)
     if _, err := io.Copy(w, resp.Body); err != nil {
         log.Printf("Error copying response body: %v", err)
@@ -106,30 +96,23 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
     log.Printf("PROXY Response: %d", resp.StatusCode)
 }
 
-
-
 func serveStaticFile(w http.ResponseWriter, r *http.Request) {
-	// Get the file path
 	path := r.URL.Path
 	if path == "/" {
 		path = "/index.html"
 	}
 
-	// Clean the path to prevent directory traversal
 	cleanPath := filepath.Clean(path)
 	
-	// Security check - prevent directory traversal
 	if strings.Contains(cleanPath, "..") {
 		log.Printf("Security: Blocked access to: %s", cleanPath)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
-	// Build full file path (remove leading slash for relative path)
 	relativePath := strings.TrimPrefix(cleanPath, "/")
 	filePath := filepath.Join(STATIC_DIR, relativePath)
 
-	// Check if file exists
 	info, err := os.Stat(filePath)
 	if err != nil {
 		log.Printf("File not found: %s (tried: %s)", path, filePath)
@@ -143,16 +126,13 @@ func serveStaticFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Set content type based on file extension
 	contentType := getContentType(filePath)
 	w.Header().Set("Content-Type", contentType)
 
-	// Set cache headers for static assets
 	if strings.HasPrefix(path, "/css/") || strings.HasPrefix(path, "/js/") {
 		w.Header().Set("Cache-Control", "public, max-age=3600")
 	}
 
-	// Serve the file
 	log.Printf("Serving: %s (%s)", path, contentType)
 	http.ServeFile(w, r, filePath)
 }
