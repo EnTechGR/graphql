@@ -129,18 +129,18 @@
         // Create floating particles for visual effect
         function createParticles() {
             const container = document.getElementById('particles-container');
-            const particleCount = 15;
+            const particleCount = 8; // Reduced from 15 for better content visibility
             
             for (let i = 0; i < particleCount; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'particle';
                 
                 // Random properties
-                const size = Math.random() * 100 + 50;
+                const size = Math.random() * 80 + 40; // Slightly smaller
                 const x = Math.random() * window.innerWidth;
                 const y = Math.random() * window.innerHeight;
                 const delay = Math.random() * 20;
-                const duration = Math.random() * 20 + 20;
+                const duration = Math.random() * 25 + 25; // Slower movement
                 
                 particle.style.width = `${size}px`;
                 particle.style.height = `${size}px`;
@@ -149,8 +149,9 @@
                 particle.style.animationDelay = `${delay}s`;
                 particle.style.animationDuration = `${duration}s`;
                 particle.style.background = `radial-gradient(circle, 
-                    rgba(102, 126, 234, ${Math.random() * 0.1}), 
+                    rgba(102, 126, 234, ${Math.random() * 0.05}), 
                     transparent)`;
+                particle.style.opacity = '0.6'; // More subtle
                 
                 container.appendChild(particle);
             }

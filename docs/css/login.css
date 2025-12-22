@@ -1,7 +1,3 @@
-/* ============================= */
-/* 🔐 FUNKY LOGIN PAGE STYLES */
-/* ============================= */
-
 .login-body {
     height: 100vh;
     background: linear-gradient(120deg, #4a90e2, #50e3c2, #e94e77);
@@ -19,7 +15,6 @@
     100% { background-position: 0% 50%; }
 }
 
-/* Floating blurred background shapes */
 .login-bg::before,
 .login-bg::after {
     content: '';
@@ -43,7 +38,6 @@
     to { transform: translateY(-60px); }
 }
 
-/* Glass Card */
 .funky-login {
     background: rgba(255,255,255,0.15);
     backdrop-filter: blur(14px);
@@ -74,7 +68,6 @@
     opacity: 0.85;
 }
 
-/* Animated Inputs */
 .funky-form .input-group {
     position: relative;
     margin-bottom: 22px;
@@ -108,7 +101,6 @@
     color: #fff;
 }
 
-/* Funky Button */
 .funky-btn {
     width: 100%;
     padding: 12px;
@@ -128,7 +120,6 @@
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
-/* Error Message Animation */
 .shake-error {
     margin-top: 12px;
     min-height: 18px;
@@ -149,7 +140,6 @@
     100% { transform: translateX(0); }
 }
 
-/* Footer */
 .login-footer {
     margin-top: 20px;
     font-size: 0.75rem;

@@ -21,13 +21,13 @@
     --bg-dark: #0f0f1e;
     --bg-dark-lighter: #1a1a2e;
     --bg-card-dark: rgba(26, 26, 46, 0.6);
-    --text-dark: #e5e7eb;
-    --text-dark-secondary: #9ca3af;
+    --text-dark: #f9fafb;
+    --text-dark-secondary: #d1d5db;
     
     /* Glass Effect */
-    --glass-bg: rgba(255, 255, 255, 0.1);
-    --glass-border: rgba(255, 255, 255, 0.2);
-    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.15);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
     
     /* Spacing & Effects */
     --border-radius: 20px;
@@ -138,7 +138,7 @@ body::before {
 .profile-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 40px 30px;
+    padding: 30px 25px;
     position: relative;
     z-index: 2;
 }
@@ -151,10 +151,11 @@ body::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 50px;
-    padding: 30px 40px;
+    margin-bottom: 40px;
+    padding: 25px 35px;
     background: var(--glass-bg);
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: var(--border-radius-lg);
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
@@ -168,13 +169,14 @@ body::before {
 
 .user-info h2 {
     margin: 0;
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 800;
     background: var(--primary-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     animation: gradientText 3s ease infinite;
+    background-size: 200% auto;
 }
 
 @keyframes gradientText {
@@ -183,8 +185,8 @@ body::before {
 }
 
 .user-info p {
-    margin: 8px 0 0 0;
-    font-size: 1.1rem;
+    margin: 6px 0 0 0;
+    font-size: 0.95rem;
     color: var(--text-dark-secondary);
     font-weight: 400;
 }
@@ -237,15 +239,16 @@ body::before {
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px;
-    margin-bottom: 50px;
+    gap: 25px;
+    margin-bottom: 40px;
 }
 
 .stat-card {
     background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    padding: 35px 25px;
-    border-radius: var(--border-radius-lg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 28px 20px;
+    border-radius: var(--border-radius);
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
     text-align: center;
@@ -253,6 +256,7 @@ body::before {
     position: relative;
     overflow: hidden;
     animation: fadeInUp 0.6s ease backwards;
+    min-height: 140px;
 }
 
 .stat-card::before {
@@ -293,8 +297,8 @@ body::before {
 }
 
 .stat-card h3 {
-    margin: 0 0 20px 0;
-    font-size: 1.2rem;
+    margin: 0 0 15px 0;
+    font-size: 1rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -302,7 +306,7 @@ body::before {
 }
 
 .stat-card .value {
-    font-size: 3.5rem;
+    font-size: 2.5rem;
     font-weight: 800;
     background: var(--success-gradient);
     -webkit-background-clip: text;
@@ -331,16 +335,17 @@ body::before {
 .main-content-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-    gap: 40px;
-    margin-top: 50px;
-    margin-bottom: 50px;
+    gap: 30px;
+    margin-top: 40px;
+    margin-bottom: 40px;
 }
 
 .skills-section, .progress-section {
     background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    padding: 35px;
-    border-radius: var(--border-radius-lg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 28px;
+    border-radius: var(--border-radius);
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
     transition: var(--transition-smooth);
@@ -354,12 +359,12 @@ body::before {
 }
 
 .skills-section h3, .progress-section h3 {
-    margin: 0 0 30px 0;
-    font-size: 1.8rem;
+    margin: 0 0 25px 0;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-dark);
     position: relative;
-    padding-bottom: 15px;
+    padding-bottom: 12px;
 }
 
 .skills-section h3::after, .progress-section h3::after {
@@ -367,8 +372,8 @@ body::before {
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 60px;
-    height: 4px;
+    width: 50px;
+    height: 3px;
     background: var(--primary-gradient);
     border-radius: 2px;
 }
@@ -384,7 +389,7 @@ body::before {
 }
 
 .skills-list li {
-    margin-bottom: 25px;
+    margin-bottom: 18px;
     animation: fadeInRight 0.5s ease backwards;
 }
 
@@ -407,8 +412,8 @@ body::before {
 
 .skill-name {
     font-weight: 600;
-    margin-bottom: 10px;
-    font-size: 1rem;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
     color: var(--text-dark);
     display: flex;
     justify-content: space-between;
@@ -468,32 +473,32 @@ body::before {
 .progress-table {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0 10px;
-    font-size: 0.95rem;
+    border-spacing: 0 8px;
+    font-size: 0.9rem;
 }
 
 .progress-table th {
-    background: rgba(102, 126, 234, 0.15);
+    background: rgba(102, 126, 234, 0.2);
     color: var(--text-dark);
     font-weight: 600;
-    padding: 15px 20px;
+    padding: 12px 18px;
     text-align: left;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
 }
 
 .progress-table th:first-child {
-    border-radius: 10px 0 0 10px;
+    border-radius: 8px 0 0 8px;
 }
 
 .progress-table th:last-child {
-    border-radius: 0 10px 10px 0;
+    border-radius: 0 8px 8px 0;
 }
 
 .progress-table td {
-    padding: 15px 20px;
-    background: rgba(255, 255, 255, 0.03);
+    padding: 12px 18px;
+    background: rgba(255, 255, 255, 0.05);
     color: var(--text-dark-secondary);
 }
 
@@ -502,21 +507,21 @@ body::before {
 }
 
 .progress-table tbody tr:hover {
-    transform: translateX(5px);
+    transform: translateX(3px);
 }
 
 .progress-table tbody tr:hover td {
-    background: rgba(102, 126, 234, 0.1);
+    background: rgba(102, 126, 234, 0.12);
 }
 
 .progress-table td:first-child {
-    border-radius: 10px 0 0 10px;
+    border-radius: 8px 0 0 8px;
     font-weight: 600;
     color: var(--text-dark);
 }
 
 .progress-table td:last-child {
-    border-radius: 0 10px 10px 0;
+    border-radius: 0 8px 8px 0;
 }
 
 .grade-pass {
@@ -540,49 +545,50 @@ body::before {
 }
 
 .graph-section h3 {
-    margin-bottom: 15px;
-    font-size: 2rem;
+    margin-bottom: 12px;
+    font-size: 1.75rem;
     font-weight: 700;
     color: var(--text-dark);
 }
 
 .graph-section > p {
-    margin-bottom: 40px;
+    margin-bottom: 30px;
     color: var(--text-dark-secondary);
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
 #graphsContainer {
     display: flex;
     flex-direction: column;
-    gap: 40px;
+    gap: 30px;
 }
 
 .graph-card {
     background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    padding: 35px;
-    border-radius: var(--border-radius-lg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 28px;
+    border-radius: var(--border-radius);
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
     transition: var(--transition-smooth);
-    min-height: 400px;
+    min-height: 350px;
     animation: fadeInUp 0.6s ease backwards;
 }
 
 .graph-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    border-color: rgba(102, 126, 234, 0.5);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    border-color: rgba(102, 126, 234, 0.4);
 }
 
 .graph-card h4 {
-    margin: 0 0 25px 0;
-    font-size: 1.5rem;
+    margin: 0 0 20px 0;
+    font-size: 1.3rem;
     font-weight: 700;
     color: var(--text-dark);
     position: relative;
-    padding-bottom: 15px;
+    padding-bottom: 12px;
 }
 
 .graph-card h4::after {
@@ -590,7 +596,7 @@ body::before {
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 50px;
+    width: 40px;
     height: 3px;
     background: var(--primary-gradient);
     border-radius: 2px;
@@ -607,13 +613,13 @@ body::before {
 
 .ratio-cards-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 30px;
-    margin-bottom: 40px;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
 }
 
 .ratio-cards-container .graph-card {
-    min-height: 350px;
+    min-height: 320px;
 }
 
 /* ============================= */
@@ -667,19 +673,46 @@ body::before {
     .header {
         flex-direction: column;
         gap: 20px;
-        padding: 25px;
+        padding: 20px;
     }
     
     .user-info h2 {
-        font-size: 2rem;
+        font-size: 1.75rem;
     }
     
     .stat-card .value {
-        font-size: 2.5rem;
+        font-size: 2rem;
+    }
+    
+    .stat-card {
+        padding: 25px 18px;
+        min-height: 120px;
     }
     
     .ratio-cards-container {
         grid-template-columns: 1fr;
+    }
+    
+    .main-content-grid {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+    
+    .skills-section, .progress-section {
+        padding: 22px;
+    }
+    
+    .skills-section h3, .progress-section h3 {
+        font-size: 1.3rem;
+    }
+    
+    .graph-card {
+        padding: 22px;
+        min-height: 300px;
+    }
+    
+    .graph-card h4 {
+        font-size: 1.2rem;
     }
 }
 
