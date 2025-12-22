@@ -13,14 +13,12 @@ function createGraphCard(title, svgContent) {
     return card;
 }
 
-export function clearGraphs() {
-  const graphsContainer = document.getElementById('graphsContainer');
-  if (graphsContainer) {
-    graphsContainer.innerHTML = '';
-  }
-
+function clearGraphs() {
+    const container = document.getElementById('graphsContainer');
+    if (container) {
+        container.innerHTML = '';
+    }
 }
-
 
 function logout() {
     localStorage.removeItem('jwt');

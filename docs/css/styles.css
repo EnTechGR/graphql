@@ -1,271 +1,271 @@
-/* ============================= */
-/* 🎨 DASHBOARD DESIGN SYSTEM */
-/* ============================= */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-/* ============================= */
-/* 🔑 DESIGN TOKENS */
-/* ============================= */
-
+/* --- Variables --- */
 :root {
-  /* Brand */
-  --color-primary: #667eea;
-  --color-secondary: #00f2fe;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-
-  /* Gradients (restricted use) */
-  --gradient-primary: linear-gradient(135deg, #667eea, #764ba2);
-  --gradient-accent: linear-gradient(135deg, #4facfe, #00f2fe);
-
-  /* Surfaces */
-  --bg-page: #0f0f1e;
-  --bg-surface: rgba(255, 255, 255, 0.08);
-  --bg-surface-hover: rgba(255, 255, 255, 0.12);
-  --border-subtle: rgba(255, 255, 255, 0.15);
-
-  /* Typography */
-  --font-family-base: 'Inter', system-ui, sans-serif;
-
-  --text-h1: 2.25rem;
-  --text-h2: 1.75rem;
-  --text-h3: 1.4rem;
-  --text-body: 1rem;
-  --text-meta: 0.85rem;
-
-  --font-regular: 400;
-  --font-medium: 500;
-  --font-semibold: 600;
-  --font-bold: 700;
-  --font-extrabold: 800;
-
-  /* Motion */
-  --motion-fast: 150ms;
-  --motion-base: 300ms;
-  --motion-slow: 600ms;
-
-  /* Shape */
-  --radius-base: 20px;
+    --bg-color: #f5f7fa;
+    --bg-card-color: #ffffff;
+    --primary-color: #4a90e2;
+    --secondary-color: #50e3c2;
+    --error-color: #e94e77;
+    --text-color: #333333;
+    --detail-color: #777777;
+    --border-radius: 12px;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* ============================= */
-/* 🌐 BASE */
-/* ============================= */
-
+/* --- Global Styles --- */
 body {
-  margin: 0;
-  min-height: 100vh;
-  background: var(--bg-page);
-  color: #f9fafb;
-  font-family: var(--font-family-base);
+    margin: 0;
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--text-color);
 }
 
-/* ============================= */
-/* 📦 LAYOUT */
-/* ============================= */
-
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px;
+.profile-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
 }
 
-/* ============================= */
-/* 🧱 CARD (BASE COMPONENT) */
-/* ============================= */
-
-.card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-base);
-  padding: 24px;
-  backdrop-filter: blur(10px);
-  transition: transform var(--motion-base) ease,
-              box-shadow var(--motion-base) ease;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-}
-
-/* ============================= */
-/* 🎯 HEADER */
-/* ============================= */
-
+/* --- Header --- */
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
 }
 
 .user-info h2 {
-  margin: 0;
-  font-size: var(--text-h1);
-  font-weight: var(--font-extrabold);
+    margin: 0;
+    font-size: 2rem;
 }
 
 .user-info p {
-  margin-top: 6px;
-  font-size: var(--text-meta);
-  opacity: 0.8;
+    margin: 4px 0 0 0;
+    font-size: 1rem;
+    color: var(--detail-color);
 }
 
 .user-id {
-  color: var(--color-secondary);
-  font-weight: var(--font-semibold);
+    font-weight: bold;
+    color: var(--primary-color) !important;
 }
 
 .logout-btn {
-  padding: 12px 28px;
-  border-radius: 999px;
-  border: none;
-  background: var(--gradient-accent);
-  color: #fff;
-  font-weight: var(--font-semibold);
-  cursor: pointer;
-  transition: transform var(--motion-fast) ease;
+    padding: 10px 20px;
+    background-color: var(--error-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
 }
 
 .logout-btn:hover {
-  transform: translateY(-2px);
+    background-color: #c73a61;
 }
 
-/* ============================= */
-/* 📊 STATS */
-/* ============================= */
-
+/* --- Stats Grid --- */
 .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
-  margin-bottom: 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px; /* Space between cards */
+    margin-bottom: 40px;
 }
 
 .stat-card {
-  text-align: center;
+    background-color: var(--bg-card-color);
+    padding: 40px 20px;   /* larger padding for full content */
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+    transition: transform 0.3s;
+    min-height: 150px;    /* ensure enough vertical space */
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
 }
 
 .stat-card h3 {
-  font-size: var(--text-meta);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  opacity: 0.7;
-  margin-bottom: 12px;
+    margin: 0 0 15px 0;
+    font-size: 1.5rem;
 }
 
-.stat-value {
-  font-size: var(--text-h1);
-  font-weight: var(--font-extrabold);
+.stat-card .value {
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--primary-color); /* Highlight values */
 }
 
-.stat-value--primary {
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.detail-text {
+    color: var(--detail-color);
+    font-size: 1rem;
+    margin-top: 10px;
 }
 
-/* ============================= */
-/* 🎓 SECTIONS */
-/* ============================= */
-
-.section-title {
-  font-size: var(--text-h2);
-  font-weight: var(--font-bold);
-  margin-bottom: 8px;
+/* --- Main Content Layout --- */
+.main-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Skills on left, Progress/Grades on right */
+    gap: 30px;
+    margin-top: 40px;
+    margin-bottom: 40px;
 }
 
-.section-divider {
-  width: 48px;
-  height: 3px;
-  background: var(--gradient-primary);
-  margin-bottom: 24px;
+.skills-section, .progress-section {
+    background-color: var(--bg-card-color);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
 }
 
-/* ============================= */
-/* 🧠 SKILLS (PROGRESS) */
-/* ============================= */
+.skills-section h3, .progress-section h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    color: var(--text-color);
+}
 
+/* Skills List styling */
 .skills-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.skills-list li {
+    margin-bottom: 15px;
 }
 
 .skill-name {
-  display: flex;
-  justify-content: space-between;
-  font-size: var(--text-body);
-  font-weight: var(--font-medium);
-  margin-bottom: 8px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
 }
 
-.progress-track {
-  height: 10px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 999px;
-  overflow: hidden;
+.skill-level-container {
+    display: flex;
+    align-items: center;
 }
 
-.progress-fill {
-  height: 100%;
-  background: var(--gradient-accent);
-  transition: width var(--motion-slow) ease;
+.skill-bar {
+    height: 8px;
+    background-color: var(--primary-color);
+    border-radius: 4px;
+    transition: width 0.5s ease-out;
+    margin-right: 10px;
+    flex-grow: 1; /* Allow bar to take max width */
 }
 
-/* ============================= */
-/* 📋 TABLE */
-/* ============================= */
-
-.table {
-  width: 100%;
-  border-spacing: 0 8px;
+.skill-value {
+    font-size: 0.8rem;
+    color: var(--detail-color);
+    white-space: nowrap;
 }
 
-.table th {
-  font-size: var(--text-meta);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  text-align: left;
-  padding: 12px 16px;
+/* Progress Table styling */
+.progress-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
 }
 
-.table td {
-  padding: 12px 16px;
-  background: rgba(255,255,255,0.05);
+.progress-table th, .progress-table td {
+    padding: 10px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eeeeee;
 }
 
-.table tbody tr:hover td {
-  background: rgba(255,255,255,0.08);
+.progress-table th {
+    background-color: #f0f4f8;
+    color: var(--text-color);
+    font-weight: bold;
 }
 
-/* ============================= */
-/* 📈 GRAPHS */
-/* ============================= */
+.progress-table tr:last-child td {
+    border-bottom: none;
+}
+
+.grade-pass {
+    color: var(--secondary-color); /* Greenish color */
+    font-weight: bold;
+}
+
+.grade-fail {
+    color: var(--error-color); /* Reddish color */
+}
+
+/* --- Graph Section --- */
+.graph-section h3 {
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+}
+
+.graph-section p {
+    margin-bottom: 20px;
+    color: var(--detail-color);
+}
+
+/* --- Graph Container --- */
+#graphsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* --- Graph Cards --- */
+.graph-card {
+    width: 100%;
+    height: 400px;
+    background-color: var(--bg-card-color);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center the graph itself */
+}
+
+.graph-card svg {
+    flex-grow: 1; /* Allow SVG to take available space */
+    max-height: 100%;
+}
+
+.chart-filters {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chart-filters select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* Add this to your style.css or relevant CSS file */
+.ratio-cards-container {
+    display: flex; /* Enables flexbox layout */
+    flex-wrap: wrap; /* Allows wrapping on smaller screens */
+    gap: 20px; /* Space between the cards */
+    justify-content: space-around; /* Center or distribute space */
+    margin-bottom: 20px;
+}
+
+/* Ensure the graph cards within this container are sized appropriately */
+.ratio-cards-container .graph-card {
+    flex: 1 1 45%; /* Allows two cards to fit side-by-side comfortably */
+    min-width: 250px;
+}
 
 .graph-card {
-  min-height: 320px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 20px;
+    background-color: #fff;
 }
-
 .graph-card h4 {
-  font-size: var(--text-h3);
-  font-weight: var(--font-bold);
-  margin-bottom: 16px;
-}
-
-/* ============================= */
-/* 📱 RESPONSIVE */
-/* ============================= */
-
-@media (max-width: 768px) {
-  .header {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .stat-value {
-    font-size: 2rem;
-  }
+    margin: 0 0 10px 0;
 }

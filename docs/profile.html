@@ -1,165 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GraphQL Profile Dashboard</title>
-
-  <meta
-    name="description"
-    content="GraphQL Profile Dashboard with performance analytics and progress tracking"
-  />
-
-  <link rel="stylesheet" href="css/styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - GraphQL Profile</title>
+    <link rel="stylesheet" href="css/styles.css"> 
 </head>
-
 <body>
-  <main class="container">
+    <div class="profile-container">
+        <header class="header">
+            <div class="user-info">
+                <h2 id="userName">Loading...</h2>
+                <p class="user-id" id="userId"></p>
+                <p><span class="detail-text">Campus: </span><span id="userCampus">N/A</span></p>
+                <p><span class="detail-text">Member Since: </span><span id="memberSince">N/A</span></p>
+            </div>
+            <button onclick="logout()" class="logout-btn">Logout</button>
+        </header>
 
-    <!-- ========================= -->
-    <!-- HEADER -->
-    <!-- ========================= -->
-    <header class="header card" role="banner">
-      <div class="user-info">
-        <h2 id="userName" aria-live="polite">Loading…</h2>
-        <p class="user-id" id="userId">ID: —</p>
-        <p>Campus: <span id="userCampus">N/A</span></p>
-        <p>Member Since: <span id="memberSince">N/A</span></p>
-      </div>
-
-      <button
-        class="logout-btn"
-        type="button"
-        aria-label="Logout from dashboard"
-        onclick="logout()"
-      >
-        Logout
-      </button>
-    </header>
-
-    <!-- ========================= -->
-    <!-- STATS -->
-    <!-- ========================= -->
-    <section
-      class="stats-grid"
-      role="region"
-      aria-label="Statistics Overview"
-    >
-      <div class="card stat-card">
-        <h3>Total XP</h3>
-        <div
-          class="stat-value stat-value--primary"
-          id="totalXP"
-          aria-live="polite"
-        >
-          —
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <h3>Total XP</h3>
+                <div class="value" id="totalXP">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Audit Ratio</h3>
+                <div class="value" id="auditRatio">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Projects Completed</h3>
+                <div class="value" id="projectsCompleted">-</div>
+            </div>
         </div>
-        <p class="detail-text">Experience Points</p>
-      </div>
 
-      <div class="card stat-card">
-        <h3>Audit Ratio</h3>
-        <div class="stat-value" id="auditRatio" aria-live="polite">—</div>
-      </div>
+        <div class="main-content-grid">
+            <section class="skills-section">
+                <h3>Top Skills</h3>
+                <div id="userSkillsContainer">
+                     <p class="detail-text">Loading skills...</p>
+                </div>
+            </section>
 
-      <div class="card stat-card">
-        <h3>Projects</h3>
-        <div class="stat-value" id="projectsCompleted" aria-live="polite">
-          —
+            <section class="progress-section">
+                <h3>Recent Progress & Results</h3>
+                <div id="recentProgressTableContainer">
+                    <p class="detail-text">Loading recent results...</p>
+                </div>
+            </section>
         </div>
-        <p class="detail-text">Completed</p>
-      </div>
-    </section>
+        
+        <div class="graph-section">
+            <h3>Statistics</h3>
+            <p>Visualizations of your performance data.</p>
+            
+            <div id="graphsContainer"></div>
 
-    <!-- ========================= -->
-    <!-- MAIN CONTENT -->
-    <!-- ========================= -->
-    <section class="main-content-grid">
-
-      <!-- SKILLS -->
-      <section class="card" role="region" aria-labelledby="skills-title">
-        <h3 class="section-title" id="skills-title">Top Skills</h3>
-        <div class="section-divider"></div>
-
-        <div id="userSkillsContainer" aria-live="polite">
-          <p class="detail-text">Loading skills…</p>
+            <div class="progress-trend-wrapper">
+                <div id="progressChartContainer"></div>
+            </div>
         </div>
-      </section>
+    </div>
 
-      <!-- PROGRESS -->
-      <section class="card" role="region" aria-labelledby="progress-title">
-        <h3 class="section-title" id="progress-title">
-          Recent Progress & Results
-        </h3>
-        <div class="section-divider"></div>
-
-        <div id="recentProgressTableContainer" aria-live="polite">
-          <p class="detail-text">Loading results…</p>
-        </div>
-      </section>
-
-    </section>
-
-    <!-- ========================= -->
-    <!-- GRAPHS -->
-    <!-- ========================= -->
-    <section
-      class="graph-section"
-      role="region"
-      aria-labelledby="analytics-title"
-    >
-      <h3 class="section-title" id="analytics-title">
-        Statistics & Analytics
-      </h3>
-      <div class="section-divider"></div>
-
-      <p class="detail-text">
-        Visualizations of performance metrics and achievements.
-      </p>
-
-      <div
-        id="graphsContainer"
-        role="list"
-        aria-label="Performance Charts"
-      >
-        <!-- Graph cards injected here -->
-      </div>
-
-      <div
-        id="progressChartContainer"
-        class="card graph-card"
-        role="img"
-        aria-label="Progress trend chart"
-      ></div>
-    </section>
-
-  </main>
-
-  <!-- ========================= -->
-  <!-- LIBRARIES -->
-  <!-- ========================= -->
-  <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
-  <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
-  <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
-
-  <!-- ========================= -->
-  <!-- APPLICATION -->
-  <!-- ========================= -->
-  <script src="js/auth.js"></script>
-  <script src="js/graphql.js"></script>
-
-  <script type="module" src="js/config.js"></script>
-  <script type="module" src="js/graphUtils.js"></script>
-  <script type="module" src="js/statsRendering.js"></script>
-
-  <script type="module" src="js/charting-xp.js"></script>
-  <script type="module" src="js/charting-audits.js"></script>
-  <script type="module" src="js/charting-results.js"></script>
-  <script type="module" src="js/charting-progress.js"></script>
-  <script type="module" src="js/charting-skills.js"></script>
-  <script type="module" src="js/charting-xp-zino.js"></script>
-
-  <script type="module" src="js/main.js"></script>
-
+    <!-- External Libraries -->
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+    
+    <!-- Authentication & API -->
+    <script src="js/auth.js"></script>
+    <script src="js/graphql.js"></script>
+    
+    <!-- Core Application Modules -->
+    <script type="module" src="js/config.js"></script>
+    <script type="module" src="js/graphUtils.js"></script>
+    <script type="module" src="js/statsRendering.js"></script>
+    
+    <!-- Chart Modules (Refactored) -->
+    <script type="module" src="js/charting-xp.js"></script>
+    <script type="module" src="js/charting-audits.js"></script>
+    <script type="module" src="js/charting-results.js"></script>
+    <script type="module" src="js/charting-progress.js"></script>
+    <script type="module" src="js/charting-skills.js"></script>
+    <script type="module" src="js/charting-xp-zino.js"></script>
+    
+    <!-- Main Application -->
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
