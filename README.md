@@ -98,6 +98,8 @@ graphql-profile-project/
    Open your browser and navigate to:
    ```
    http://localhost:8080
+   https://zone01-proxy.onrender.com/
+   https://entechgr.github.io/graphql/
    ```
 
 ## 💻 Usage
