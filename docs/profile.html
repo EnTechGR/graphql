@@ -3,60 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - GraphQL Profile</title>
-    <link rel="stylesheet" href="css/styles.css"> 
+    <title>🚀 GraphQL Profile Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <meta name="description" content="Modern GraphQL Profile Dashboard with stunning visualizations">
 </head>
 <body>
+    <!-- Floating Particles Background -->
+    <div id="particles-container"></div>
+
     <div class="profile-container">
-        <header class="header">
+        <!-- Modern Header with Glassmorphism -->
+        <header class="header" role="banner">
             <div class="user-info">
-                <h2 id="userName">Loading...</h2>
-                <p class="user-id" id="userId"></p>
-                <p><span class="detail-text">Campus: </span><span id="userCampus">N/A</span></p>
-                <p><span class="detail-text">Member Since: </span><span id="memberSince">N/A</span></p>
+                <h2 id="userName">
+                    <span class="loading-shimmer">Loading...</span>
+                </h2>
+                <p class="user-id" id="userId">
+                    <span class="loading-shimmer">ID: ---</span>
+                </p>
+                <p>
+                    <span class="detail-text">🏫 Campus: </span>
+                    <span id="userCampus" class="info-value">N/A</span>
+                </p>
+                <p>
+                    <span class="detail-text">📅 Member Since: </span>
+                    <span id="memberSince" class="info-value">N/A</span>
+                </p>
             </div>
-            <button onclick="logout()" class="logout-btn">Logout</button>
+            <button onclick="logout()" class="logout-btn" aria-label="Logout from dashboard">
+                🚪 Logout
+            </button>
         </header>
 
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card">
-                <h3>Total XP</h3>
-                <div class="value" id="totalXP">-</div>
+        <!-- Stats Cards Grid -->
+        <div class="stats-grid" id="statsGrid" role="region" aria-label="Statistics Overview">
+            <div class="stat-card" data-stat="xp">
+                <h3>⚡ Total XP</h3>
+                <div class="value" id="totalXP">
+                    <span class="loading-shimmer">-</span>
+                </div>
+                <div class="detail-text" style="margin-top: 10px;">Experience Points</div>
             </div>
-            <div class="stat-card">
-                <h3>Audit Ratio</h3>
-                <div class="value" id="auditRatio">-</div>
+            <div class="stat-card" data-stat="audit">
+                <h3>🎯 Audit Ratio</h3>
+                <div class="value" id="auditRatio">
+                    <span class="loading-shimmer">-</span>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>Projects Completed</h3>
-                <div class="value" id="projectsCompleted">-</div>
+            <div class="stat-card" data-stat="projects">
+                <h3>✅ Projects</h3>
+                <div class="value" id="projectsCompleted">
+                    <span class="loading-shimmer">-</span>
+                </div>
+                <div class="detail-text" style="margin-top: 10px;">Completed</div>
             </div>
         </div>
 
+        <!-- Main Content Grid -->
         <div class="main-content-grid">
-            <section class="skills-section">
-                <h3>Top Skills</h3>
+            <!-- Skills Section -->
+            <section class="skills-section" role="region" aria-labelledby="skills-title">
+                <h3 id="skills-title">🎓 Top Skills</h3>
                 <div id="userSkillsContainer">
-                     <p class="detail-text">Loading skills...</p>
+                    <p class="detail-text">
+                        <span class="loading-shimmer">Loading skills data...</span>
+                    </p>
                 </div>
             </section>
 
-            <section class="progress-section">
-                <h3>Recent Progress & Results</h3>
+            <!-- Recent Progress Section -->
+            <section class="progress-section" role="region" aria-labelledby="progress-title">
+                <h3 id="progress-title">📈 Recent Progress & Results</h3>
                 <div id="recentProgressTableContainer">
-                    <p class="detail-text">Loading recent results...</p>
+                    <p class="detail-text">
+                        <span class="loading-shimmer">Loading recent results...</span>
+                    </p>
                 </div>
             </section>
         </div>
         
-        <div class="graph-section">
-            <h3>Statistics</h3>
-            <p>Visualizations of your performance data.</p>
+        <!-- Statistics & Graphs Section -->
+        <div class="graph-section" role="region" aria-labelledby="stats-title">
+            <h3 id="stats-title">📊 Statistics & Analytics</h3>
+            <p>Interactive visualizations of your performance metrics and achievements.</p>
             
-            <div id="graphsContainer"></div>
+            <div id="graphsContainer" role="list" aria-label="Performance Charts">
+                <!-- Charts will be dynamically inserted here -->
+            </div>
 
             <div class="progress-trend-wrapper">
-                <div id="progressChartContainer"></div>
+                <div id="progressChartContainer" role="img" aria-label="Progress Trend Chart">
+                    <!-- Progress chart will be rendered here -->
+                </div>
             </div>
         </div>
     </div>
@@ -85,5 +123,41 @@
     
     <!-- Main Application -->
     <script type="module" src="js/main.js"></script>
+
+    <!-- Particle Animation Script -->
+    <script>
+        // Create floating particles for visual effect
+        function createParticles() {
+            const container = document.getElementById('particles-container');
+            const particleCount = 15;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                // Random properties
+                const size = Math.random() * 100 + 50;
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight;
+                const delay = Math.random() * 20;
+                const duration = Math.random() * 20 + 20;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.animationDelay = `${delay}s`;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.background = `radial-gradient(circle, 
+                    rgba(102, 126, 234, ${Math.random() * 0.1}), 
+                    transparent)`;
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        // Initialize particles on load
+        window.addEventListener('load', createParticles);
+    </script>
 </body>
 </html>

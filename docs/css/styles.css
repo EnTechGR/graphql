@@ -1,133 +1,382 @@
-/* --- Variables --- */
+/* ============================= */
+/* 🎨 MODERN FANCY DASHBOARD */
+/* ============================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 :root {
-    --bg-color: #f5f7fa;
-    --bg-card-color: #ffffff;
-    --primary-color: #4a90e2;
-    --secondary-color: #50e3c2;
-    --error-color: #e94e77;
-    --text-color: #333333;
-    --detail-color: #777777;
-    --border-radius: 12px;
-    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Modern Color Palette */
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    
+    --primary-color: #667eea;
+    --secondary-color: #00f2fe;
+    --success-color: #10b981;
+    --error-color: #ef4444;
+    --warning-color: #f59e0b;
+    
+    /* Dark Theme Colors */
+    --bg-dark: #0f0f1e;
+    --bg-dark-lighter: #1a1a2e;
+    --bg-card-dark: rgba(26, 26, 46, 0.6);
+    --text-dark: #e5e7eb;
+    --text-dark-secondary: #9ca3af;
+    
+    /* Glass Effect */
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    
+    /* Spacing & Effects */
+    --border-radius: 20px;
+    --border-radius-lg: 24px;
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.5);
+    --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.1);
+    
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* --- Global Styles --- */
+/* ============================= */
+/* 🌈 ANIMATED BACKGROUND */
+/* ============================= */
+
 body {
     margin: 0;
     font-family: var(--font-family);
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    background: var(--bg-dark);
+    color: var(--text-dark);
+    overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
 }
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(0, 242, 254, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+    animation: gradientShift 15s ease infinite;
+    z-index: 0;
+    pointer-events: none;
+}
+
+@keyframes gradientShift {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* Particles Container */
+#particles-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+}
+
+/* Floating Particles */
+.particle {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+    animation: float 20s infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) translateX(0); }
+    25% { transform: translateY(-100px) translateX(50px); }
+    50% { transform: translateY(-200px) translateX(-50px); }
+    75% { transform: translateY(-100px) translateX(100px); }
+}
+
+/* ============================= */
+/* ✨ LOADING SHIMMER EFFECT */
+/* ============================= */
+
+.loading-shimmer {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0.1) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    display: inline-block;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.info-value {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+/* ============================= */
+/* 📦 CONTAINER & LAYOUT */
+/* ============================= */
 
 .profile-container {
-    max-width: 1200px;
-    margin: 20px auto;
-    padding: 0 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 30px;
+    position: relative;
+    z-index: 2;
 }
 
-/* --- Header --- */
+/* ============================= */
+/* 🎯 HEADER SECTION */
+/* ============================= */
+
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 50px;
+    padding: 30px 40px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    animation: slideDown 0.6s ease;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
 .user-info h2 {
     margin: 0;
-    font-size: 2rem;
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientText 3s ease infinite;
+}
+
+@keyframes gradientText {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
 }
 
 .user-info p {
-    margin: 4px 0 0 0;
-    font-size: 1rem;
-    color: var(--detail-color);
+    margin: 8px 0 0 0;
+    font-size: 1.1rem;
+    color: var(--text-dark-secondary);
+    font-weight: 400;
 }
 
 .user-id {
-    font-weight: bold;
-    color: var(--primary-color) !important;
+    font-weight: 600;
+    color: var(--secondary-color) !important;
+    text-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
 }
 
 .logout-btn {
-    padding: 10px 20px;
-    background-color: var(--error-color);
+    padding: 14px 32px;
+    background: var(--secondary-gradient);
     color: white;
     border: none;
-    border-radius: var(--border-radius);
+    border-radius: 50px;
     cursor: pointer;
     font-size: 1rem;
-    transition: background-color 0.3s;
+    font-weight: 600;
+    transition: var(--transition-smooth);
+    box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.logout-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+.logout-btn:hover::before {
+    left: 100%;
 }
 
 .logout-btn:hover {
-    background-color: #c73a61;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(245, 87, 108, 0.6);
 }
 
-/* --- Stats Grid --- */
+/* ============================= */
+/* 📊 STATS GRID */
+/* ============================= */
+
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px; /* Space between cards */
-    margin-bottom: 40px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin-bottom: 50px;
 }
 
 .stat-card {
-    background-color: var(--bg-card-color);
-    padding: 40px 20px;   /* larger padding for full content */
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    padding: 35px 25px;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
     text-align: center;
-    transition: transform 0.3s;
-    min-height: 150px;    /* ensure enough vertical space */
+    transition: var(--transition-smooth);
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease backwards;
 }
 
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--primary-gradient);
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+}
+
+.stat-card:hover::before {
+    transform: scaleX(1);
+}
+
+@keyframes fadeInUp {
+    from { 
+        transform: translateY(30px); 
+        opacity: 0; 
+    }
+    to { 
+        transform: translateY(0); 
+        opacity: 1; 
+    }
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+
 .stat-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: var(--shadow-glow), var(--glass-shadow);
+    border-color: rgba(102, 126, 234, 0.5);
 }
 
 .stat-card h3 {
-    margin: 0 0 15px 0;
-    font-size: 1.5rem;
+    margin: 0 0 20px 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dark-secondary);
 }
 
 .stat-card .value {
-    font-size: 3rem;
-    font-weight: bold;
-    color: var(--primary-color); /* Highlight values */
+    font-size: 3.5rem;
+    font-weight: 800;
+    background: var(--success-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
 }
 
 .detail-text {
-    color: var(--detail-color);
-    font-size: 1rem;
-    margin-top: 10px;
+    color: var(--text-dark-secondary);
+    font-size: 0.95rem;
+    margin-top: 15px;
+    font-weight: 400;
 }
 
-/* --- Main Content Layout --- */
+/* ============================= */
+/* 🎓 MAIN CONTENT GRID */
+/* ============================= */
+
 .main-content-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Skills on left, Progress/Grades on right */
-    gap: 30px;
-    margin-top: 40px;
-    margin-bottom: 40px;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 40px;
+    margin-top: 50px;
+    margin-bottom: 50px;
 }
 
 .skills-section, .progress-section {
-    background-color: var(--bg-card-color);
-    padding: 20px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    padding: 35px;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    transition: var(--transition-smooth);
+    animation: fadeInUp 0.6s ease backwards;
+    animation-delay: 0.4s;
+}
+
+.skills-section:hover, .progress-section:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
 }
 
 .skills-section h3, .progress-section h3 {
-    margin-top: 0;
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-    color: var(--text-color);
+    margin: 0 0 30px 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    position: relative;
+    padding-bottom: 15px;
 }
 
-/* Skills List styling */
+.skills-section h3::after, .progress-section h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: var(--primary-gradient);
+    border-radius: 2px;
+}
+
+/* ============================= */
+/* 🎯 SKILLS SECTION */
+/* ============================= */
+
 .skills-list {
     list-style: none;
     padding: 0;
@@ -135,137 +384,340 @@ body {
 }
 
 .skills-list li {
-    margin-bottom: 15px;
+    margin-bottom: 25px;
+    animation: fadeInRight 0.5s ease backwards;
+}
+
+.skills-list li:nth-child(1) { animation-delay: 0.1s; }
+.skills-list li:nth-child(2) { animation-delay: 0.15s; }
+.skills-list li:nth-child(3) { animation-delay: 0.2s; }
+.skills-list li:nth-child(4) { animation-delay: 0.25s; }
+.skills-list li:nth-child(5) { animation-delay: 0.3s; }
+
+@keyframes fadeInRight {
+    from { 
+        transform: translateX(-30px); 
+        opacity: 0; 
+    }
+    to { 
+        transform: translateX(0); 
+        opacity: 1; 
+    }
 }
 
 .skill-name {
-    font-weight: bold;
-    margin-bottom: 5px;
-    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: var(--text-dark);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .skill-level-container {
     display: flex;
     align-items: center;
+    gap: 15px;
 }
 
 .skill-bar {
-    height: 8px;
-    background-color: var(--primary-color);
-    border-radius: 4px;
-    transition: width 0.5s ease-out;
-    margin-right: 10px;
-    flex-grow: 1; /* Allow bar to take max width */
+    height: 10px;
+    background: linear-gradient(90deg, 
+        var(--primary-color) 0%, 
+        var(--secondary-color) 100%);
+    border-radius: 50px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-grow: 1;
+    position: relative;
+    box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
+}
+
+.skill-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255,255,255,0.3) 50%, 
+        transparent 100%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
 }
 
 .skill-value {
-    font-size: 0.8rem;
-    color: var(--detail-color);
+    font-size: 0.9rem;
+    color: var(--text-dark-secondary);
+    font-weight: 600;
     white-space: nowrap;
+    min-width: 50px;
+    text-align: right;
 }
 
-/* Progress Table styling */
+/* ============================= */
+/* 📋 PROGRESS TABLE */
+/* ============================= */
+
 .progress-table {
     width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
-}
-
-.progress-table th, .progress-table td {
-    padding: 10px 15px;
-    text-align: left;
-    border-bottom: 1px solid #eeeeee;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    font-size: 0.95rem;
 }
 
 .progress-table th {
-    background-color: #f0f4f8;
-    color: var(--text-color);
-    font-weight: bold;
+    background: rgba(102, 126, 234, 0.15);
+    color: var(--text-dark);
+    font-weight: 600;
+    padding: 15px 20px;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.85rem;
 }
 
-.progress-table tr:last-child td {
-    border-bottom: none;
+.progress-table th:first-child {
+    border-radius: 10px 0 0 10px;
+}
+
+.progress-table th:last-child {
+    border-radius: 0 10px 10px 0;
+}
+
+.progress-table td {
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-dark-secondary);
+}
+
+.progress-table tr {
+    transition: var(--transition-smooth);
+}
+
+.progress-table tbody tr:hover {
+    transform: translateX(5px);
+}
+
+.progress-table tbody tr:hover td {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.progress-table td:first-child {
+    border-radius: 10px 0 0 10px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.progress-table td:last-child {
+    border-radius: 0 10px 10px 0;
 }
 
 .grade-pass {
-    color: var(--secondary-color); /* Greenish color */
-    font-weight: bold;
+    color: var(--success-color);
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
 }
 
 .grade-fail {
-    color: var(--error-color); /* Reddish color */
+    color: var(--error-color);
+    font-weight: 700;
 }
 
-/* --- Graph Section --- */
+/* ============================= */
+/* 📈 GRAPH SECTION */
+/* ============================= */
+
+.graph-section {
+    animation: fadeInUp 0.6s ease backwards;
+    animation-delay: 0.6s;
+}
+
 .graph-section h3 {
-    margin-bottom: 10px;
-    font-size: 1.5rem;
+    margin-bottom: 15px;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
 }
 
-.graph-section p {
-    margin-bottom: 20px;
-    color: var(--detail-color);
+.graph-section > p {
+    margin-bottom: 40px;
+    color: var(--text-dark-secondary);
+    font-size: 1.1rem;
 }
 
-/* --- Graph Container --- */
 #graphsContainer {
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 40px;
 }
 
-/* --- Graph Cards --- */
 .graph-card {
-    width: 100%;
-    height: 400px;
-    background-color: var(--bg-card-color);
-    padding: 20px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center the graph itself */
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    padding: 35px;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    transition: var(--transition-smooth);
+    min-height: 400px;
+    animation: fadeInUp 0.6s ease backwards;
+}
+
+.graph-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    border-color: rgba(102, 126, 234, 0.5);
+}
+
+.graph-card h4 {
+    margin: 0 0 25px 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.graph-card h4::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: var(--primary-gradient);
+    border-radius: 2px;
 }
 
 .graph-card svg {
-    flex-grow: 1; /* Allow SVG to take available space */
+    flex-grow: 1;
     max-height: 100%;
 }
 
+/* ============================= */
+/* 🎴 RATIO CARDS */
+/* ============================= */
+
+.ratio-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.ratio-cards-container .graph-card {
+    min-height: 350px;
+}
+
+/* ============================= */
+/* 🎯 CHART FILTERS */
+/* ============================= */
+
 .chart-filters {
-    margin-bottom: 15px;
+    margin-bottom: 25px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 15px;
 }
 
 .chart-filters select {
-    padding: 6px 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
+    padding: 10px 20px;
+    border-radius: 50px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-dark);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition-smooth);
 }
 
-/* Add this to your style.css or relevant CSS file */
-.ratio-cards-container {
-    display: flex; /* Enables flexbox layout */
-    flex-wrap: wrap; /* Allows wrapping on smaller screens */
-    gap: 20px; /* Space between the cards */
-    justify-content: space-around; /* Center or distribute space */
-    margin-bottom: 20px;
+.chart-filters select:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary-color);
 }
 
-/* Ensure the graph cards within this container are sized appropriately */
-.ratio-cards-container .graph-card {
-    flex: 1 1 45%; /* Allows two cards to fit side-by-side comfortably */
-    min-width: 250px;
+.chart-filters select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
 }
 
-.graph-card {
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin-bottom: 20px;
-    background-color: #fff;
+/* ============================= */
+/* 📱 RESPONSIVE DESIGN */
+/* ============================= */
+
+@media (max-width: 1200px) {
+    .main-content-grid {
+        grid-template-columns: 1fr;
+    }
 }
-.graph-card h4 {
-    margin: 0 0 10px 0;
+
+@media (max-width: 768px) {
+    .profile-container {
+        padding: 20px 15px;
+    }
+    
+    .header {
+        flex-direction: column;
+        gap: 20px;
+        padding: 25px;
+    }
+    
+    .user-info h2 {
+        font-size: 2rem;
+    }
+    
+    .stat-card .value {
+        font-size: 2.5rem;
+    }
+    
+    .ratio-cards-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================= */
+/* ✨ SCROLL BAR STYLING */
+/* ============================= */
+
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-dark-lighter);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #7c96f5, #1affff);
+}
+
+/* ============================= */
+/* 🎭 LOADING ANIMATION */
+/* ============================= */
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: var(--secondary-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
 }
