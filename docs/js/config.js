@@ -13,12 +13,18 @@ function createGraphCard(title, svgContent) {
     return card;
 }
 
-function clearGraphs() {
-    const container = document.getElementById('graphsContainer');
-    if (container) {
-        container.innerHTML = '';
-    }
+export function clearGraphs() {
+  const graphsContainer = document.getElementById('graphsContainer');
+  if (graphsContainer) {
+    graphsContainer.innerHTML = '';
+  }
+
+  const progressContainer = document.getElementById('progressChartContainer');
+  if (progressContainer) {
+    progressContainer.innerHTML = '';
+  }
 }
+
 
 function logout() {
     localStorage.removeItem('jwt');
