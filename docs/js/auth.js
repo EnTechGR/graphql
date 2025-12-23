@@ -164,7 +164,9 @@ if (storedJwt) {
     
     if (ok) {
         const currentPath = window.location.pathname.split('/').pop();
-        if (currentPath !== 'profile.html' && currentPath !== '') {
+        const protectedPages = ['profile.html', 'projects.html', 'audits.html', 'events.html']; 
+    
+        if (!protectedPages.includes(currentPath) && currentPath !== '') {
             console.log('Valid JWT found. Redirecting to profile.html.');
             window.location.href = 'profile.html';
         }

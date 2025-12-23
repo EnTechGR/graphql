@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - GraphQL Profile</title>
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./css/projects.css">
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="logo-placeholder">G</div>
+                <span>GraphQL.OS</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="profile.html">Profile Overview</a>
+                <a href="projects.html" class="active">Projects</a>
+                <a href="audits.html">Audits</a>
+                <a href="events.html">Events</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="dashboard-header">
+                <div class="user-welcome">
+                    <h2>Project Repository</h2>
+                    <p>Track your technical achievements and milestones</p>
+                </div>
+            </header>
+            
+            <div id="projectsGrid" class="projects-container-pro">
+                <p class="loading-text">Synchronizing repository...</p>
+            </div>
+        </main>
+    </div>
+
+    <button onclick="logout()" class="logout-btn-floating">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        <span>Logout</span>
+    </button>
+
+    <script src="js/auth.js"></script>
+    <script src="js/graphql.js"></script>
+    <script type="module" src="js/projects.js"></script>
+</body>
+</html>

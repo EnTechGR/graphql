@@ -166,6 +166,57 @@ const GET_USER_SKILLS_RADAR = `
   }
 `;
 
+const GET_XP_TRANSACTIONS = `
+    query {
+        transaction(
+            where: { 
+                _or: [
+                    { type: { _eq: "up" } },
+                    { type: { _eq: "down" } },
+                    { type: { _eq: "xp" } }
+                ]
+            }
+            order_by: { createdAt: desc }
+        ) {
+            id
+            type
+            amount
+            createdAt
+            path
+            object {
+                name
+                type
+            }
+        }
+    }
+`;
+
+// Add this to your queries object in graphql.js
+const GET_USER_EVENTS = `
+  query ($userId: Int!, $parentIds: [Int!]!) {
+    registration(
+      where: { event: { parentId: { _in: $parentIds } } }
+      order_by: { eventJoinedAt: asc }
+    ) {
+      endAt
+      eventJoinedAt
+      id
+      path
+      object {
+        name
+      }
+      eventId
+      event {
+        endAt
+      }
+      users(where: { id: { _eq: $userId } }) {
+        id
+      }
+    }
+  }
+`;
+
+
 window.GraphQL = {
     executeQuery,
     queries: {
@@ -174,6 +225,8 @@ window.GraphQL = {
         GET_AUDIT_RATIO,
         GET_USER_RESULTS,
         GET_USER_PROGRESS_BY_ID,
-        GET_USER_SKILLS_RADAR
+        GET_USER_SKILLS_RADAR,
+        GET_XP_TRANSACTIONS,
+        GET_USER_EVENTS
     }
 };
